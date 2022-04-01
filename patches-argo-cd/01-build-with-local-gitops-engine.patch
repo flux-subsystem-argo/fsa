@@ -24,7 +24,7 @@ index b639ffa2c..3201ac6c9 100644
 +
 +gitops-engine/
 diff --git a/Dockerfile b/Dockerfile
-index 8a1be3320..6280a4669 100644
+index 8a1be3320..95c78ce1b 100644
 --- a/Dockerfile
 +++ b/Dockerfile
 @@ -68,7 +68,7 @@ RUN ln -s /usr/local/bin/entrypoint.sh /usr/local/bin/uid_entrypoint.sh
@@ -94,7 +94,7 @@ index becff4b79..b727d3045 100644
  .PHONY: codegen-local
  codegen-local: ensure-gopath mod-vendor-local gogen protogen clientgen openapigen clidocsgen manifests-local
 diff --git a/go.mod b/go.mod
-index 750a9d008..95a281d29 100644
+index 8a8974736..0e9a09a04 100644
 --- a/go.mod
 +++ b/go.mod
 @@ -120,4 +120,6 @@ replace (

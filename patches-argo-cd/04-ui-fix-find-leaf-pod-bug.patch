@@ -9,7 +9,7 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  2 files changed, 15 insertions(+), 2 deletions(-)
 
 diff --git a/ui/src/app/applications/components/resource-details/resource-details.tsx b/ui/src/app/applications/components/resource-details/resource-details.tsx
-index 3680faa25..7d7ea861b 100644
+index 839151e01..592c9fe9c 100644
 --- a/ui/src/app/applications/components/resource-details/resource-details.tsx
 +++ b/ui/src/app/applications/components/resource-details/resource-details.tsx
 @@ -250,10 +250,12 @@ export const ResourceDetails = (props: ResourceDetailsProps) => {

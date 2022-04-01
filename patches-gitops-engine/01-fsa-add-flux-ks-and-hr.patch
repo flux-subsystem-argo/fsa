@@ -79,7 +79,7 @@ index 0000000..a85c93f
 +	}
 +}
 diff --git a/pkg/cache/cluster_test.go b/pkg/cache/cluster_test.go
-index 9774d5f..994b0e3 100644
+index 2d42b07..356c81d 100644
 --- a/pkg/cache/cluster_test.go
 +++ b/pkg/cache/cluster_test.go
 @@ -97,6 +97,14 @@ func newCluster(t *testing.T, objs ...runtime.Object) *clusterCache {
