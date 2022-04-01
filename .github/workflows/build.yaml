@@ -15,6 +15,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: install stgit
+        shell: bash
+        run: |
+          sudo apt-get install -y stgit
+          git config --global user.name "Chanwit Kaewkasi"
+          git config --global user.email "chanwit@gmail.com"
       - name: Get branch names
         id: branch-name
         uses: tj-actions/branch-names@v5.1
@@ -23,7 +29,7 @@ jobs:
         run: |
           VERSION="${{ steps.branch-name.outputs.current_branch }}-${GITHUB_SHA::8}"
           echo ::set-output name=VERSION::${VERSION}
-      - name: Init
+      - name: Init repos and do patching
         run: |
           bash -x ./init.sh
       - name: Login to GitHub Container Registry
