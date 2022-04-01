@@ -1,10 +1,4 @@
-pushd .
-git clone https://github.com/argoproj/gitops-engine
-cd gitops-engine
-git checkout -b workspace v0.5.2
-stg init
-stg import -t --series ../patches-gitops-engine/series
-popd
+bash -x ./init-gitops-engine.sh
 
 pushd .
 git clone https://github.com/argoproj/argo-cd
