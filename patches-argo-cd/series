@@ -1,0 +1,10 @@
+# This series applies on Git commit 8f981ccfcf942a9eb00bc466649f8499ba0455f5
+01-build-with-local-gitops-engine.patch
+02-implement-loopback.patch
+03-allow-flux-scheme.patch
+04-ui-fix-find-leaf-pod-bug.patch
+05-ui-show-kstatus-in-ui.patch
+06-show-custom-info.patch
+07-ui-add-resource-icons.patch
+08-ui-implement-health-checks-and.patch
+09-auto-create-flux-resources.patch

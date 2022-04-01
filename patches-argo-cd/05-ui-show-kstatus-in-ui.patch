@@ -1,0 +1,40 @@
+ui: show kstatus in ui
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ .../application-node-info.tsx                      |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/ui/src/app/applications/components/application-node-info/application-node-info.tsx b/ui/src/app/applications/components/application-node-info/application-node-info.tsx
+index f153e6679..b221dd2d1 100644
+--- a/ui/src/app/applications/components/application-node-info/application-node-info.tsx
++++ b/ui/src/app/applications/components/application-node-info/application-node-info.tsx
+@@ -7,7 +7,7 @@ import {YamlEditor} from '../../../shared/components';
+ import * as models from '../../../shared/models';
+ import {services} from '../../../shared/services';
+ import {ApplicationResourcesDiff} from '../application-resources-diff/application-resources-diff';
+-import {ComparisonStatusIcon, getPodStateReason, HealthStatusIcon} from '../utils';
++import {ComparisonStatusIcon, getKstatusCondition, getPodStateReason, HealthStatusIcon} from '../utils';
+ 
+ require('./application-node-info.scss');
+ 
+@@ -60,6 +60,17 @@ export const ApplicationNodeInfo = (props: {
+                 hostNames = (status.loadBalancer.ingress || []).map((item: any) => item.hostname || item.ip).join(', ');
+             }
+             attributes.push({title: 'HOSTNAMES', value: hostNames});
++        } else if (props.node.kind == 'Kustomization' ||
++                    props.node.kind == "GitRepository" ||
++                    props.node.kind == "Bucket" ||
++                    props.node.kind == "HelmRelease" ||
++                    props.node.kind == "Terraform") {
++            const condition = getKstatusCondition("Ready", props.live)
++            if (condition) {
++                attributes.push({title: 'READY', value: condition.status})
++                attributes.push({title: 'REASON', value: condition.reason})
++                attributes.push({title: 'STATUS', value: condition.message})
++            }
+         }
+     }
+ 

@@ -1,0 +1,32 @@
+auto create flux resources
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ controller/sync.go |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/controller/sync.go b/controller/sync.go
+index d12af0e48..4508d5e68 100644
+--- a/controller/sync.go
++++ b/controller/sync.go
+@@ -61,6 +61,18 @@ func (m *appStateManager) SyncAppState(app *v1alpha1.Application, state *v1alpha
+ 	}
+ 	syncOp = *state.Operation.Sync
+ 
++	// TODO (CK) use code generator from CLI
++	if syncOp.SyncOptions.HasOption("FluxSubsystem=true") &&
++		syncOp.SyncOptions.HasOption("AutoCreateFluxResources=true") {
++		if app.Spec.Source.IsHelm() {
++			// generate helm + source
++			syncOp.Manifests = append(syncOp.Manifests)
++		} else {
++			// generate ks + source
++			syncOp.Manifests = append(syncOp.Manifests)
++		}
++	}
++
+ 	// validates if it should fail the sync if it finds shared resources
+ 	hasSharedResource, sharedResourceMessage := hasSharedResourceCondition(app)
+ 	if syncOp.SyncOptions.HasOption("FailOnSharedResource=true") &&
