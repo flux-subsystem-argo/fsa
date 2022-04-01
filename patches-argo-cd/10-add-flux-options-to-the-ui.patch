@@ -1,0 +1,22 @@
+add flux options to the ui
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ .../application-sync-options.tsx                   |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/ui/src/app/applications/components/application-sync-options/application-sync-options.tsx b/ui/src/app/applications/components/application-sync-options/application-sync-options.tsx
+index 829a905c0..e3f50ecdc 100644
+--- a/ui/src/app/applications/components/application-sync-options/application-sync-options.tsx
++++ b/ui/src/app/applications/components/application-sync-options/application-sync-options.tsx
+@@ -89,6 +89,8 @@ const syncOptions: Array<(props: ApplicationSyncOptionProps) => React.ReactNode>
+     props => booleanOption('CreateNamespace', 'Auto-Create Namespace', false, props, false),
+     props => booleanOption('PruneLast', 'Prune Last', false, props, false),
+     props => booleanOption('ApplyOutOfSyncOnly', 'Apply Out of Sync Only', false, props, false),
++    props => booleanOption('FluxSubsystem', 'Flux Subsystem', false, props, false),
++    props => booleanOption('AutoCreateFluxResources', 'Auto-Create Flux Resources', false, props, false),
+     props => selectOption('PrunePropagationPolicy', 'Prune Propagation Policy', 'foreground', ['foreground', 'background', 'orphan'], props)
+ ];
+ 

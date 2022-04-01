@@ -8,3 +8,4 @@
 07-ui-add-resource-icons.patch
 08-ui-implement-health-checks-and.patch
 09-auto-create-flux-resources.patch
+10-add-flux-options-to-the-ui.patch
