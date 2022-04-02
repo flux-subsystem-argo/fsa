@@ -15,7 +15,7 @@ index 829a905c0..e3f50ecdc 100644
      props => booleanOption('CreateNamespace', 'Auto-Create Namespace', false, props, false),
      props => booleanOption('PruneLast', 'Prune Last', false, props, false),
      props => booleanOption('ApplyOutOfSyncOnly', 'Apply Out of Sync Only', false, props, false),
-+    props => booleanOption('FluxSubsystem', 'Flux Subsystem', false, props, false),
++    props => booleanOption('FluxSubsystem', 'Use Flux Subsystem', false, props, false),
 +    props => booleanOption('AutoCreateFluxResources', 'Auto-Create Flux Resources', false, props, false),
      props => selectOption('PrunePropagationPolicy', 'Prune Propagation Policy', 'foreground', ['foreground', 'background', 'orphan'], props)
  ];
