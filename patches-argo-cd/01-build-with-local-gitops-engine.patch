@@ -94,7 +94,7 @@ index becff4b79..b727d3045 100644
  .PHONY: codegen-local
  codegen-local: ensure-gopath mod-vendor-local gogen protogen clientgen openapigen clidocsgen manifests-local
 diff --git a/go.mod b/go.mod
-index 8a8974736..0e9a09a04 100644
+index 8a8974736..ce0bcb24a 100644
 --- a/go.mod
 +++ b/go.mod
 @@ -120,4 +120,6 @@ replace (
