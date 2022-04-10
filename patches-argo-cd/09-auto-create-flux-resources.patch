@@ -4,15 +4,15 @@ From: Chanwit Kaewkasi <chanwit@gmail.com>
 
 Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
 ---
- controller/state_fsa.go     |   86 ++++++++++++++++---
+ controller/state_fsa.go     |  154 +++++++++++++++++++++++++++-------
  controller/sync_fsa.go      |  193 +++++++++++++++++++++++++++++++++++++++++++
  controller/sync_fsa_test.go |   47 ++++++++++
- 3 files changed, 310 insertions(+), 16 deletions(-)
+ 3 files changed, 362 insertions(+), 32 deletions(-)
  create mode 100644 controller/sync_fsa.go
  create mode 100644 controller/sync_fsa_test.go
 
 diff --git a/controller/state_fsa.go b/controller/state_fsa.go
-index f795c6a75..0ac893c91 100644
+index f795c6a75..54bb28e4f 100644
 --- a/controller/state_fsa.go
 +++ b/controller/state_fsa.go
 @@ -6,6 +6,7 @@ import (
@@ -23,7 +23,7 @@ index f795c6a75..0ac893c91 100644
  )
  
  func isFluxSubsystemEnabled(app *v1alpha1.Application) bool {
-@@ -24,6 +25,22 @@ func isFluxSubsystemEnabled(app *v1alpha1.Application) bool {
+@@ -24,38 +25,80 @@ func isFluxSubsystemEnabled(app *v1alpha1.Application) bool {
  	return true
  }
  
@@ -46,7 +46,109 @@ index f795c6a75..0ac893c91 100644
  func (m *appStateManager) getFluxHelmTargetObjects(app *v1alpha1.Application, conditions []v1alpha1.ApplicationCondition, now v1.Time) ([]*unstructured.Unstructured, []v1alpha1.ApplicationCondition, bool) {
  	var (
  		targetObjs       []*unstructured.Unstructured
-@@ -87,32 +104,59 @@ func (m *appStateManager) getFluxKustomizeTargetObjects(app *v1alpha1.Applicatio
+ 		failedToLoadObjs bool
+ 	)
+ 
++	// always use auto-generated resources when the flag is checked
++	if IsAutoCreateFluxResourcesEnabled(app) {
++		hlObj, repoObj, genYamlErr := generateFluxHelmAndSource(app)
++		if genYamlErr != nil {
++			targetObjs = make([]*unstructured.Unstructured, 0)
++			conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: genYamlErr.Error(), LastTransitionTime: &now})
++			failedToLoadObjs = true
++			return targetObjs, conditions, failedToLoadObjs
++		}
++
++		targetObjs = []*unstructured.Unstructured{hlObj, repoObj}
++		failedToLoadObjs = false
++		return targetObjs, conditions, failedToLoadObjs
++	}
++
++	// otherwise, try to sync from cluster
+ 	cluster, err := m.db.GetCluster(context.TODO(), app.Spec.Destination.Server)
+ 	if err != nil {
+ 		targetObjs = make([]*unstructured.Unstructured, 0)
+ 		conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
+ 		failedToLoadObjs = true
++		return targetObjs, conditions, failedToLoadObjs
+ 	}
+ 	config := cluster.RESTConfig()
+-
+-	var hl *unstructured.Unstructured
++	var (
++		hl         *unstructured.Unstructured
++		hlNotFound bool
++	)
+ 	hl, err = m.kubectl.GetResource(context.TODO(), config, schema.GroupVersionKind{
+ 		Group:   "helm.toolkit.fluxcd.io",
+ 		Version: "v2beta1",
+ 		Kind:    "HelmRelease",
+ 	}, app.Name, app.Spec.Destination.Namespace)
++
+ 	if err != nil {
+-		targetObjs = make([]*unstructured.Unstructured, 0)
+-		conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
+-		failedToLoadObjs = true
++		// err might be a "not found" one
++		if strings.Contains(err.Error(), "not found") {
++			hlNotFound = true
++		} else {
++			targetObjs = make([]*unstructured.Unstructured, 0)
++			conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
++			failedToLoadObjs = true
++			return targetObjs, conditions, failedToLoadObjs
++		}
+ 	}
+ 
+-	if hl == nil {
+-		targetObjs = make([]*unstructured.Unstructured, 0)
+-		conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
+-		failedToLoadObjs = true
+-	} else {
+-		var source *unstructured.Unstructured
++	var (
++		source         *unstructured.Unstructured
++		sourceNotFound bool
++	)
++	// if found HL object
++	if hlNotFound == false {
+ 		if sourceKind, found, err := unstructured.NestedString(hl.Object, "spec", "chart", "spec", "sourceRef", "kind"); found && err == nil {
+ 			if sourceName, found, err := unstructured.NestedString(hl.Object, "spec", "chart", "spec", "sourceRef", "name"); found && err == nil {
+ 				if sourceNS, found, err := unstructured.NestedString(hl.Object, "spec", "chart", "spec", "sourceRef", "namespace"); err == nil {
+@@ -67,17 +110,27 @@ func (m *appStateManager) getFluxHelmTargetObjects(app *v1alpha1.Application, co
+ 						Version: "v1beta1",
+ 						Kind:    sourceKind,
+ 					}, sourceName, sourceNS)
++					if err != nil {
++						if strings.Contains(err.Error(), "not found") {
++							sourceNotFound = true
++						} else {
++							targetObjs = make([]*unstructured.Unstructured, 0)
++							conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
++							failedToLoadObjs = true
++							return targetObjs, conditions, failedToLoadObjs
++						}
++					}
+ 				}
+ 			}
+ 		}
+-		if source != nil {
++
++		if sourceNotFound == false {
+ 			targetObjs = []*unstructured.Unstructured{hl, source}
+-		} else {
+-			targetObjs = make([]*unstructured.Unstructured, 0)
+-			conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
+-			failedToLoadObjs = true
+ 		}
++
+ 	}
++
++	failedToLoadObjs = false
+ 	return targetObjs, conditions, failedToLoadObjs
+ }
+ 
+@@ -87,32 +140,59 @@ func (m *appStateManager) getFluxKustomizeTargetObjects(app *v1alpha1.Applicatio
  		failedToLoadObjs bool
  	)
  
@@ -117,7 +219,7 @@ index f795c6a75..0ac893c91 100644
  		if sourceKind, found, err := unstructured.NestedString(ks.Object, "spec", "sourceRef", "kind"); found && err == nil {
  			if sourceName, found, err := unstructured.NestedString(ks.Object, "spec", "sourceRef", "name"); found && err == nil {
  				if sourceNS, found, err := unstructured.NestedString(ks.Object, "spec", "sourceRef", "namespace"); err == nil {
-@@ -124,16 +168,26 @@ func (m *appStateManager) getFluxKustomizeTargetObjects(app *v1alpha1.Applicatio
+@@ -124,16 +204,26 @@ func (m *appStateManager) getFluxKustomizeTargetObjects(app *v1alpha1.Applicatio
  						Version: "v1beta1",
  						Kind:    sourceKind,
  					}, sourceName, sourceNS)
