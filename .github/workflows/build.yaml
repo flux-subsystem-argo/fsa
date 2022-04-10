@@ -40,5 +40,6 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
       - name: Build
         run: |
-          VERSION=$(cat ./VERSION)-${{ steps.prep.outputs.VERSION }}
+          source ./VERSION
+          VERSION=${BASE_VERSION}-${SUFFIX_VERSION}-${{ steps.prep.outputs.VERSION }}
           cd argo-cd && IMAGE_NAMESPACE=ghcr.io/flux-subsystem-argo/fsa IMAGE_TAG=$VERSION DOCKER_PUSH=true make image
