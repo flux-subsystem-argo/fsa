@@ -94,10 +94,10 @@ index becff4b79..b727d3045 100644
  .PHONY: codegen-local
  codegen-local: ensure-gopath mod-vendor-local gogen protogen clientgen openapigen clidocsgen manifests-local
 diff --git a/go.mod b/go.mod
-index 8a8974736..ce0bcb24a 100644
+index 521bdabe2..1558e1a53 100644
 --- a/go.mod
 +++ b/go.mod
-@@ -120,4 +120,6 @@ replace (
+@@ -119,4 +119,6 @@ replace (
  	k8s.io/mount-utils => k8s.io/mount-utils v0.22.2
  	k8s.io/pod-security-admission => k8s.io/pod-security-admission v0.22.2
  	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.22.2
