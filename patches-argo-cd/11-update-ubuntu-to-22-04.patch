@@ -1,0 +1,19 @@
+update ubuntu to 22.04
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ Dockerfile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Dockerfile b/Dockerfile
+index 95c78ce1b..88aa35188 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -1,4 +1,4 @@
+-ARG BASE_IMAGE=docker.io/library/ubuntu:21.04
++ARG BASE_IMAGE=docker.io/library/ubuntu:22.04
+ ####################################################################################################
+ # Builder image
+ # Initial stage which pulls prepares build dependencies and CLI tooling we need for our final image

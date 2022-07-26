@@ -9,3 +9,4 @@
 08-ui-implement-health-checks-and.patch
 09-auto-create-flux-resources.patch
 10-add-flux-options-to-the-ui.patch
+11-update-ubuntu-to-22-04.patch
