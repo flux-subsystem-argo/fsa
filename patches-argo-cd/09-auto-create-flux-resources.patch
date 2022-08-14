@@ -395,7 +395,7 @@ index 000000000..0fefeb032
 +  interval: 10m
 +  url: undefined
 +  ref:
-+    branch: undefined 
++    branch: undefined
 +`)
 +	if err := yaml.Unmarshal(repoTemplate, &repo); err != nil {
 +		return nil, nil, err
