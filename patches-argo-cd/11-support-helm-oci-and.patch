@@ -1,0 +1,172 @@
+support helm oci and ocirepository
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ controller/state_fsa.go |    7 ++--
+ controller/sync_fsa.go  |   89 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 91 insertions(+), 5 deletions(-)
+
+diff --git a/controller/state_fsa.go b/controller/state_fsa.go
+index 54bb28e4f..18f41430d 100644
+--- a/controller/state_fsa.go
++++ b/controller/state_fsa.go
+@@ -2,11 +2,12 @@ package controller
+ 
+ import (
+ 	"context"
++	"strings"
++
+ 	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
+ 	"k8s.io/apimachinery/pkg/apis/meta/v1"
+ 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+ 	"k8s.io/apimachinery/pkg/runtime/schema"
+-	"strings"
+ )
+ 
+ func isFluxSubsystemEnabled(app *v1alpha1.Application) bool {
+@@ -107,7 +108,7 @@ func (m *appStateManager) getFluxHelmTargetObjects(app *v1alpha1.Application, co
+ 					}
+ 					source, err = m.kubectl.GetResource(context.Background(), config, schema.GroupVersionKind{
+ 						Group:   "source.toolkit.fluxcd.io",
+-						Version: "v1beta1",
++						Version: "v1beta2",
+ 						Kind:    sourceKind,
+ 					}, sourceName, sourceNS)
+ 					if err != nil {
+@@ -201,7 +202,7 @@ func (m *appStateManager) getFluxKustomizeTargetObjects(app *v1alpha1.Applicatio
+ 					}
+ 					source, err = m.kubectl.GetResource(context.Background(), config, schema.GroupVersionKind{
+ 						Group:   "source.toolkit.fluxcd.io",
+-						Version: "v1beta1",
++						Version: "v1beta2",
+ 						Kind:    sourceKind,
+ 					}, sourceName, sourceNS)
+ 					if err != nil {
+diff --git a/controller/sync_fsa.go b/controller/sync_fsa.go
+index 0fefeb032..07a3196f8 100644
+--- a/controller/sync_fsa.go
++++ b/controller/sync_fsa.go
+@@ -36,13 +36,14 @@ func generateFluxHelmAndSource(app *appv1.Application) (*unstructured.Unstructur
+ 	}
+ 	repo := map[string]interface{}{}
+ 	repoTemplate := []byte(`
+-apiVersion: source.toolkit.fluxcd.io/v1beta1
++apiVersion: source.toolkit.fluxcd.io/v1beta2
+ kind: HelmRepository
+ metadata:
+   name: undefined
+   namespace: undefined
+ spec:
+   interval: 10m
++  type: default
+   url: undefined
+ `)
+ 	if err := yaml.Unmarshal(repoTemplate, &repo); err != nil {
+@@ -56,6 +57,14 @@ spec:
+ 		return nil, nil, err
+ 	}
+ 
++	// Support Helm OCI
++	if strings.HasPrefix(app.Spec.Source.RepoURL, "oci://") {
++		if err := unstructured.SetNestedField(repo, "oci",
++			"spec", "type"); err != nil {
++			return nil, nil, err
++		}
++	}
++
+ 	release := map[string]interface{}{}
+ 	releaseTemplate := []byte(`
+ apiVersion: helm.toolkit.fluxcd.io/v2beta1
+@@ -125,9 +134,17 @@ spec:
+ }
+ 
+ func generateFluxKustomizationAndSource(app *appv1.Application) (*unstructured.Unstructured, *unstructured.Unstructured, error) {
++	if strings.HasPrefix(app.Spec.Source.RepoURL, "oci://") {
++		return generateFluxKustomizationAndOCISource(app)
++	} else {
++		return generateFluxKustomizationAndGitSource(app)
++	}
++}
++
++func generateFluxKustomizationAndGitSource(app *appv1.Application) (*unstructured.Unstructured, *unstructured.Unstructured, error) {
+ 	repo := map[string]interface{}{}
+ 	repoTemplate := []byte(`
+-apiVersion: source.toolkit.fluxcd.io/v1beta1
++apiVersion: source.toolkit.fluxcd.io/v1beta2
+ kind: GitRepository
+ metadata:
+   name: undefined
+@@ -191,3 +208,71 @@ spec:
+ 
+ 	return ksObj, repoObj, nil
+ }
++
++func generateFluxKustomizationAndOCISource(app *appv1.Application) (*unstructured.Unstructured, *unstructured.Unstructured, error) {
++	repo := map[string]interface{}{}
++	repoTemplate := []byte(`
++apiVersion: source.toolkit.fluxcd.io/v1beta2
++kind: OCIRepository
++metadata:
++  name: undefined
++  namespace: undefined
++spec:
++  interval: 10m
++  url: undefined
++  ref:
++    tag: undefined
++`)
++	if err := yaml.Unmarshal(repoTemplate, &repo); err != nil {
++		return nil, nil, err
++	}
++	repoObj := &unstructured.Unstructured{Object: repo}
++	repoObj.SetName(app.GetName())
++	repoObj.SetNamespace(app.Spec.Destination.Namespace)
++	if err := unstructured.SetNestedField(repo, app.Spec.Source.RepoURL,
++		"spec", "url"); err != nil {
++		return nil, nil, err
++	}
++	if err := unstructured.SetNestedField(repo, app.Spec.Source.TargetRevision,
++		"spec", "ref", "tag"); err != nil {
++		return nil, nil, err
++	}
++
++	ks := map[string]interface{}{}
++	ksTemplate := []byte(`
++apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
++kind: Kustomization
++metadata:
++  name: undefined
++  namespace: undefined
++spec:
++  interval: 10m
++  path: undefined
++  prune: true
++  wait: true
++  sourceRef:
++    kind: OCIRepository
++    name: undefined
++    namespace: undefined
++`)
++	if err := yaml.Unmarshal(ksTemplate, &ks); err != nil {
++		return nil, nil, err
++	}
++	ksObj := &unstructured.Unstructured{Object: ks}
++	ksObj.SetName(app.GetName())
++	ksObj.SetNamespace(app.Spec.Destination.Namespace)
++	if err := unstructured.SetNestedField(ks, app.Spec.Source.Path,
++		"spec", "path"); err != nil {
++		return nil, nil, err
++	}
++	if err := unstructured.SetNestedField(ks, repoObj.GetName(),
++		"spec", "sourceRef", "name"); err != nil {
++		return nil, nil, err
++	}
++	if err := unstructured.SetNestedField(ks, repoObj.GetNamespace(),
++		"spec", "sourceRef", "namespace"); err != nil {
++		return nil, nil, err
++	}
++
++	return ksObj, repoObj, nil
++}

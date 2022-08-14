@@ -24,7 +24,7 @@ index b639ffa2c..3201ac6c9 100644
 +
 +gitops-engine/
 diff --git a/Dockerfile b/Dockerfile
-index 8a1be3320..95c78ce1b 100644
+index d13580fc1..88aa35188 100644
 --- a/Dockerfile
 +++ b/Dockerfile
 @@ -68,7 +68,7 @@ RUN ln -s /usr/local/bin/entrypoint.sh /usr/local/bin/uid_entrypoint.sh
@@ -94,10 +94,10 @@ index becff4b79..b727d3045 100644
  .PHONY: codegen-local
  codegen-local: ensure-gopath mod-vendor-local gogen protogen clientgen openapigen clidocsgen manifests-local
 diff --git a/go.mod b/go.mod
-index 521bdabe2..1558e1a53 100644
+index 8e9c73ff3..e640e61fe 100644
 --- a/go.mod
 +++ b/go.mod
-@@ -119,4 +119,6 @@ replace (
+@@ -123,4 +123,6 @@ replace (
  	k8s.io/mount-utils => k8s.io/mount-utils v0.22.2
  	k8s.io/pod-security-admission => k8s.io/pod-security-admission v0.22.2
  	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.22.2
