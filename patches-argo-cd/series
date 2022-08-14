@@ -1,7 +1,7 @@
 # This series applies on GIT commit fd74756aebe30c9567ff904a1c138a828f533ede
 01-build-with-local-gitops-engine.patch
 02-implement-loopback.patch
-03-allow-flux-scheme.patch
+03-allow-flux-and-oci-schemes.patch
 04-ui-fix-find-leaf-pod-bug.patch
 05-ui-show-kstatus-in-ui.patch
 06-show-custom-info.patch

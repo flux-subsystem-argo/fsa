@@ -1,4 +1,4 @@
-allow flux scheme
+allow flux and oci schemes
 
 From: Chanwit Kaewkasi <chanwit@gmail.com>
 
@@ -18,8 +18,8 @@ index 98549cacd..a53aad2e1 100644
  	check := checks[repo.Type]
  	apiResp := &apiclient.TestRepositoryResponse{VerifiedRepository: false}
 +
-+	// Flux scheme is a special case
-+	if strings.HasPrefix(repo.Repo, "flux://") {
++	// Flux or OCI scheme are special cases
++	if strings.HasPrefix(repo.Repo, "flux://") || strings.HasPrefix(repo.Repo, "oci://") {
 +		return apiResp, nil
 +	}
  	err := check()
@@ -33,8 +33,8 @@ index e480851cf..2e6e5ddbb 100644
  			// If it's already a commit SHA, then no need to look it up
  			return ambiguousRevision, ambiguousRevision, nil
  		}
-+		if strings.HasPrefix(app.Spec.Source.RepoURL, "flux://") {
-+			// Flux scheme is a special case
++		if strings.HasPrefix(app.Spec.Source.RepoURL, "flux://") || strings.HasPrefix(app.Spec.Source.RepoURL, "oci://") {
++			// Flux or OCI scheme are special cases
 +			return ambiguousRevision, ambiguousRevision, nil
 +		}
  		repo, err := s.db.GetRepository(ctx, app.Spec.Source.RepoURL)
@@ -48,8 +48,8 @@ index 40d33a078..3af25ca3b 100644
  	spec := &app.Spec
  	conditions := make([]argoappv1.ApplicationCondition, 0)
  
-+	// Flux scheme is a special case
-+	if strings.HasPrefix(spec.Source.RepoURL, "flux://") {
++	// Flux or OCI scheme are special cases
++	if strings.HasPrefix(spec.Source.RepoURL, "flux://") || strings.HasPrefix(spec.Source.RepoURL, "oci://") {
 +		return conditions, nil
 +	}
 +
