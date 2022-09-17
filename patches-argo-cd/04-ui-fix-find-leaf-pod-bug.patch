@@ -1,0 +1,62 @@
+ui: fix find leaf pod bug
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ .../resource-details/resource-details.tsx          |   10 ++++++----
+ ui/src/app/applications/components/utils.tsx       |   13 ++++++++++++-
+ 2 files changed, 18 insertions(+), 5 deletions(-)
+
+diff --git a/ui/src/app/applications/components/resource-details/resource-details.tsx b/ui/src/app/applications/components/resource-details/resource-details.tsx
+index 839151e01..569e00400 100644
+--- a/ui/src/app/applications/components/resource-details/resource-details.tsx
++++ b/ui/src/app/applications/components/resource-details/resource-details.tsx
+@@ -250,10 +250,12 @@ export const ResourceDetails = (props: ResourceDetailsProps) => {
+                         if (selectedNode.kind === 'Pod') {
+                             podState = liveState;
+                         } else {
+-                            const childPod = AppUtils.findChildPod(selectedNode, tree);
+-                            if (childPod) {
+-                                podState = await services.applications.getResource(application.metadata.name, childPod).catch(() => null);
+-                            }
++                            podState = null;
++                            // CK: findChildPod is expensive, so we only call it when we need to
++                            // const childPod = AppUtils.findChildPod(selectedNode, tree);
++                            // if (childPod) {
++                            //    podState = await services.applications.getResource(application.metadata.name, childPod).catch(() => null);
++                            // }
+                         }
+ 
+                         return {controlledState, liveState, events, podState};
+diff --git a/ui/src/app/applications/components/utils.tsx b/ui/src/app/applications/components/utils.tsx
+index d6222c445..3705979d1 100644
+--- a/ui/src/app/applications/components/utils.tsx
++++ b/ui/src/app/applications/components/utils.tsx
+@@ -347,7 +347,8 @@ function getActionItems(
+         });
+     }
+ 
+-    if (findChildPod(resource, tree)) {
++    // CK: findChildPod(resource, tree) is too expensive, so we only call it for Pod resources
++    if (resource.kind === 'Pod') {
+         items.push({
+             title: 'Logs',
+             iconClassName: 'fa fa-align-left',
+@@ -721,6 +722,16 @@ export const OperationState = ({app, quiet}: {app: appModels.Application; quiet?
+     );
+ };
+ 
++export function getKstatusCondition(conditionType: string, ks: appModels.State): {status: string; message: string; reason: string} {
++    for (const condition of ks.status.conditions) {
++        if (condition["type"] === conditionType) {
++            return {message: condition.message, reason: condition.reason, status: condition.status};
++        }
++    }
++
++    return undefined;
++}
++
+ export function getPodStateReason(pod: appModels.State): {message: string; reason: string} {
+     let reason = pod.status.phase;
+     let message = '';

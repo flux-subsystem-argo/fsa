@@ -2,3 +2,4 @@
 01-build-with-local-gitops-engine.patch
 02-implement-loopback.patch
 03-allow-flux-and-oci-schemes.patch
+04-ui-fix-find-leaf-pod-bug.patch
