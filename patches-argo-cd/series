@@ -1,12 +1,2 @@
-# This series applies on GIT commit fd74756aebe30c9567ff904a1c138a828f533ede
+# This series applies on GIT commit 402da6f64cdbf4e9615acb3bf38d7342744ca871
 01-build-with-local-gitops-engine.patch
-02-implement-loopback.patch
-03-allow-flux-and-oci-schemes.patch
-04-ui-fix-find-leaf-pod-bug.patch
-05-ui-show-kstatus-in-ui.patch
-06-show-custom-info.patch
-07-ui-add-resource-icons.patch
-08-ui-implement-health-checks-and.patch
-09-auto-create-flux-resources.patch
-10-add-flux-options-to-the-ui.patch
-11-support-helm-oci-and.patch
