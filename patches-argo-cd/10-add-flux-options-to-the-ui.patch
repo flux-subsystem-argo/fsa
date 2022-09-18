@@ -8,10 +8,10 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  1 file changed, 2 insertions(+)
 
 diff --git a/ui/src/app/applications/components/application-sync-options/application-sync-options.tsx b/ui/src/app/applications/components/application-sync-options/application-sync-options.tsx
-index 269c99fe0..6871d663b 100644
+index 8f6f16b74..75cf9a2cf 100644
 --- a/ui/src/app/applications/components/application-sync-options/application-sync-options.tsx
 +++ b/ui/src/app/applications/components/application-sync-options/application-sync-options.tsx
-@@ -90,6 +90,8 @@ const syncOptions: Array<(props: ApplicationSyncOptionProps) => React.ReactNode>
+@@ -91,6 +91,8 @@ const syncOptions: Array<(props: ApplicationSyncOptionProps) => React.ReactNode>
      props => booleanOption('PruneLast', 'Prune Last', false, props, false),
      props => booleanOption('ApplyOutOfSyncOnly', 'Apply Out of Sync Only', false, props, false),
      props => booleanOption('RespectIgnoreDifferences', 'Respect Ignore Differences', false, props, false),
