@@ -20,7 +20,7 @@ index 3dbfd6f8b..b55d47ae7 100644
 +
 +gitops-engine/
 diff --git a/Dockerfile b/Dockerfile
-index 54dcb6a28..e85c38939 100644
+index 54dcb6a28..65bb272f8 100644
 --- a/Dockerfile
 +++ b/Dockerfile
 @@ -102,7 +102,9 @@ FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.18 AS argocd-build
@@ -45,7 +45,7 @@ index 54dcb6a28..e85c38939 100644
  USER root
 +
 +RUN chmod +x /usr/local/bin/gpg-wrapper.sh && \
-+    +x /usr/local/bin/git-verify-wrapper.sh
++    chmod +x /usr/local/bin/git-verify-wrapper.sh
 +
  RUN ln -s /usr/local/bin/argocd /usr/local/bin/argocd-server && \
      ln -s /usr/local/bin/argocd /usr/local/bin/argocd-repo-server && \
