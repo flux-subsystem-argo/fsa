@@ -10,7 +10,7 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  3 files changed, 14 insertions(+)
 
 diff --git a/reposerver/repository/repository.go b/reposerver/repository/repository.go
-index 98549cacd..a53aad2e1 100644
+index 98549cacd..3d16e7169 100644
 --- a/reposerver/repository/repository.go
 +++ b/reposerver/repository/repository.go
 @@ -1781,6 +1781,11 @@ func (s *Service) TestRepository(ctx context.Context, q *apiclient.TestRepositor
@@ -26,7 +26,7 @@ index 98549cacd..a53aad2e1 100644
  	if err != nil {
  		return apiResp, fmt.Errorf("error testing repository connectivity: %w", err)
 diff --git a/server/application/application.go b/server/application/application.go
-index e480851cf..2e6e5ddbb 100644
+index e480851cf..41bdbb96c 100644
 --- a/server/application/application.go
 +++ b/server/application/application.go
 @@ -1560,6 +1560,10 @@ func (s *Server) resolveRevision(ctx context.Context, app *appv1.Application, sy
@@ -41,7 +41,7 @@ index e480851cf..2e6e5ddbb 100644
  		if err != nil {
  			return "", "", err
 diff --git a/util/argo/argo.go b/util/argo/argo.go
-index 40d33a078..3af25ca3b 100644
+index 40d33a078..461ffd935 100644
 --- a/util/argo/argo.go
 +++ b/util/argo/argo.go
 @@ -188,6 +188,11 @@ func ValidateRepo(

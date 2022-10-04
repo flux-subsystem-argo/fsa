@@ -45,7 +45,7 @@ index 54bb28e4f..18f41430d 100644
  					}, sourceName, sourceNS)
  					if err != nil {
 diff --git a/controller/sync_fsa.go b/controller/sync_fsa.go
-index 0fefeb032..07a3196f8 100644
+index 7041569a2..65ccf8782 100644
 --- a/controller/sync_fsa.go
 +++ b/controller/sync_fsa.go
 @@ -36,13 +36,14 @@ func generateFluxHelmAndSource(app *appv1.Application) (*unstructured.Unstructur
