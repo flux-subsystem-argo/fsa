@@ -45,7 +45,7 @@ jobs:
           bash -x ./init.sh
           source ./VERSION
           VERSION=${BASE_VERSION}-${SUFFIX_VERSION}-${{ steps.prep.outputs.VERSION }}
-          cd argo-cd && IMAGE_NAMESPACE=ghcr.io/flux-subsystem-argo/fsa IMAGE_TAG=$VERSION DOCKER_PUSH=true make image
+          ( cd argo-cd && IMAGE_NAMESPACE=ghcr.io/flux-subsystem-argo/fsa IMAGE_TAG=$VERSION DOCKER_PUSH=true make image )
           unlink patches-argo-cd
           unlink VERSION
       - name: Build v2.3
@@ -56,7 +56,7 @@ jobs:
           bash -x ./init.sh
           source ./VERSION
           VERSION=${BASE_VERSION}-${SUFFIX_VERSION}-${{ steps.prep.outputs.VERSION }}
-          cd argo-cd && IMAGE_NAMESPACE=ghcr.io/flux-subsystem-argo/fsa IMAGE_TAG=$VERSION DOCKER_PUSH=true make image
+          ( cd argo-cd && IMAGE_NAMESPACE=ghcr.io/flux-subsystem-argo/fsa IMAGE_TAG=$VERSION DOCKER_PUSH=true make image )
           unlink patches-argo-cd
           unlink VERSION
       - name: Build v2.4
@@ -67,6 +67,6 @@ jobs:
           bash -x ./init.sh
           source ./VERSION
           VERSION=${BASE_VERSION}-${SUFFIX_VERSION}-${{ steps.prep.outputs.VERSION }}
-          cd argo-cd && IMAGE_NAMESPACE=ghcr.io/flux-subsystem-argo/fsa IMAGE_TAG=$VERSION DOCKER_PUSH=true make image
+          ( cd argo-cd && IMAGE_NAMESPACE=ghcr.io/flux-subsystem-argo/fsa IMAGE_TAG=$VERSION DOCKER_PUSH=true make image )
           unlink patches-argo-cd
           unlink VERSION
