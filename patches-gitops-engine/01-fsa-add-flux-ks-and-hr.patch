@@ -79,10 +79,10 @@ index 0000000..a85c93f
 +	}
 +}
 diff --git a/pkg/cache/cluster_test.go b/pkg/cache/cluster_test.go
-index 68221ab..9db9622 100644
+index 2d42b07..356c81d 100644
 --- a/pkg/cache/cluster_test.go
 +++ b/pkg/cache/cluster_test.go
-@@ -99,6 +99,14 @@ func newCluster(t *testing.T, objs ...runtime.Object) *clusterCache {
+@@ -97,6 +97,14 @@ func newCluster(t *testing.T, objs ...runtime.Object) *clusterCache {
  		GroupKind:            schema.GroupKind{Group: "apps", Kind: "StatefulSet"},
  		GroupVersionResource: schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "statefulsets"},
  		Meta:                 metav1.APIResource{Namespaced: true},
@@ -302,7 +302,7 @@ index 2189836..bb1f962 100644
  
  	return ownerRefs, isInferredParentOf
 diff --git a/pkg/cache/resource_test.go b/pkg/cache/resource_test.go
-index 0562cc6..5e0abfa 100644
+index f1ea05b..4b1cab4 100644
 --- a/pkg/cache/resource_test.go
 +++ b/pkg/cache/resource_test.go
 @@ -78,3 +78,93 @@ type: kubernetes.io/service-account-token

@@ -16,6 +16,12 @@ init-v24:
 	ln -s patches-argo-cd-v2.4 patches-argo-cd
 	make init
 
+.PHONY: init-v25
+init-v25:
+	ln -s VERSION_25 VERSION
+	ln -s patches-argo-cd-v2.5 patches-argo-cd
+	make init
+
 .PHONY: uninit
 uninit:
 	unlink VERSION
