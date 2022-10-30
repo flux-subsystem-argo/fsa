@@ -1,0 +1,551 @@
+ui: implement health checks and actions
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ .../Kustomization/actions/action_test.yaml         |    4 ++
+ .../Kustomization/actions/discovery.lua            |    3 ++
+ .../Kustomization/actions/reconcile/action.lua     |    9 +++++
+ .../actions/testdata/ks-requested.yaml             |   26 ++++++++++++++++
+ .../Kustomization/actions/testdata/ks.yaml         |   24 +++++++++++++++
+ .../Kustomization/health.lua                       |   25 +++++++++++++++
+ .../Kustomization/testdata/degraded.yaml           |   24 +++++++++++++++
+ .../Kustomization/testdata/healthy.yaml            |   24 +++++++++++++++
+ .../Kustomization/testdata/progressing.yaml        |   22 +++++++++++++
+ .../kustomize.toolkit.fluxcd.io/health_test.yaml   |   13 ++++++++
+ .../GitRepository/actions/action_test.yaml         |    4 ++
+ .../GitRepository/actions/discovery.lua            |    3 ++
+ .../GitRepository/actions/reconcile/action.lua     |    9 +++++
+ .../actions/testdata/gitrepo-requested.yaml        |   33 ++++++++++++++++++++
+ .../GitRepository/actions/testdata/gitrepo.yaml    |   32 +++++++++++++++++++
+ .../GitRepository/health.lua                       |   25 +++++++++++++++
+ .../GitRepository/testdata/degraded.yaml           |   33 ++++++++++++++++++++
+ .../GitRepository/testdata/healthy.yaml            |   33 ++++++++++++++++++++
+ .../GitRepository/testdata/progressing.yaml        |   24 +++++++++++++++
+ .../source.toolkit.fluxcd.io/health_test.yaml      |   13 ++++++++
+ 20 files changed, 383 insertions(+)
+ create mode 100644 resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/action_test.yaml
+ create mode 100644 resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/discovery.lua
+ create mode 100644 resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/reconcile/action.lua
+ create mode 100644 resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/testdata/ks-requested.yaml
+ create mode 100644 resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/testdata/ks.yaml
+ create mode 100644 resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/health.lua
+ create mode 100644 resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/testdata/degraded.yaml
+ create mode 100644 resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/testdata/healthy.yaml
+ create mode 100644 resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/testdata/progressing.yaml
+ create mode 100644 resource_customizations/kustomize.toolkit.fluxcd.io/health_test.yaml
+ create mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/action_test.yaml
+ create mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/discovery.lua
+ create mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/reconcile/action.lua
+ create mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo-requested.yaml
+ create mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo.yaml
+ create mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/health.lua
+ create mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/degraded.yaml
+ create mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/healthy.yaml
+ create mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/progressing.yaml
+ create mode 100644 resource_customizations/source.toolkit.fluxcd.io/health_test.yaml
+
+diff --git a/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/action_test.yaml b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/action_test.yaml
+new file mode 100644
+index 000000000..1f3e97743
+--- /dev/null
++++ b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/action_test.yaml
+@@ -0,0 +1,4 @@
++actionTests:
++- action: reconcile
++  inputPath: testdata/ks.yaml
++  expectedOutputPath: testdata/ks-requested.yaml
+diff --git a/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/discovery.lua b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/discovery.lua
+new file mode 100644
+index 000000000..c7f895ffb
+--- /dev/null
++++ b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/discovery.lua
+@@ -0,0 +1,3 @@
++actions = {}
++actions["reconcile"] = {}
++return actions
+diff --git a/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/reconcile/action.lua b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/reconcile/action.lua
+new file mode 100644
+index 000000000..f83651d3c
+--- /dev/null
++++ b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/reconcile/action.lua
+@@ -0,0 +1,9 @@
++local os = require("os")
++if obj.metadata == nil then
++    obj.metadata = {}
++end
++if obj.metadata.annotations == nil then
++    obj.metadata.annotations = {}
++end
++obj.metadata.annotations["reconcile.fluxcd.io/requestedAt"] = os.date("!%Y-%m-%dT%XZ")
++return obj
+diff --git a/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/testdata/ks-requested.yaml b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/testdata/ks-requested.yaml
+new file mode 100644
+index 000000000..c24e3d7de
+--- /dev/null
++++ b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/testdata/ks-requested.yaml
+@@ -0,0 +1,26 @@
++apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
++kind: Kustomization
++metadata:
++  name: my-secrets
++  namespace: default
++  annotations:
++    reconcile.fluxcd.io/requestedAt: "2022-02-27T20:12:28.222377213+07:00"
++spec:
++  interval: 5m
++  path: "./"
++  sourceRef:
++    kind: GitRepository
++    name: my-secrets
++  decryption:
++    provider: sops
++    secretRef:
++      name: sops-age
++status:
++  conditions:
++  - lastTransitionTime: "2020-09-17T19:28:48Z"
++    message: "Applied revision: master/a1afe267b54f38b46b487f6e938a6fd508278c07"
++    reason: ReconciliationSucceeded
++    status: "True"
++    type: Ready
++  lastAppliedRevision: master/a1afe267b54f38b46b487f6e938a6fd508278c07
++  lastAttemptedRevision: master/a1afe267b54f38b46b487f6e938a6fd508278c07
+diff --git a/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/testdata/ks.yaml b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/testdata/ks.yaml
+new file mode 100644
+index 000000000..0fac5ad09
+--- /dev/null
++++ b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/testdata/ks.yaml
+@@ -0,0 +1,24 @@
++apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
++kind: Kustomization
++metadata:
++  name: my-secrets
++  namespace: default
++spec:
++  interval: 5m
++  path: "./"
++  sourceRef:
++    kind: GitRepository
++    name: my-secrets
++  decryption:
++    provider: sops
++    secretRef:
++      name: sops-age
++status:
++  conditions:
++  - lastTransitionTime: "2020-09-17T19:28:48Z"
++    message: "Applied revision: master/a1afe267b54f38b46b487f6e938a6fd508278c07"
++    reason: ReconciliationSucceeded
++    status: "True"
++    type: Ready
++  lastAppliedRevision: master/a1afe267b54f38b46b487f6e938a6fd508278c07
++  lastAttemptedRevision: master/a1afe267b54f38b46b487f6e938a6fd508278c07
+diff --git a/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/health.lua b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/health.lua
+new file mode 100644
+index 000000000..9a9122d44
+--- /dev/null
++++ b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/health.lua
+@@ -0,0 +1,25 @@
++hs = {}
++if obj.status ~= nil then
++  if obj.status.conditions ~= nil then
++    ready_status = ""
++    for _, condition in ipairs(obj.status.conditions) do
++      if condition.type == "Ready" then
++        ready_status = condition.status
++        ready_message = condition.reason .. " - " .. condition.message
++      end
++    end
++    if ready_status == "True" then
++      hs.status = "Healthy"
++    elseif ready_status == "False" then
++      hs.status = "Degraded"
++    elseif ready_status == "Unknown" then
++      hs.status = "Progressing"
++    end
++    hs.message = ready_message
++    return hs
++  end
++end
++
++hs.status = "Progressing"
++hs.message = "Waiting for Kustomization to reconcile ..."
++return hs
+diff --git a/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/testdata/degraded.yaml b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/testdata/degraded.yaml
+new file mode 100644
+index 000000000..43af6bce2
+--- /dev/null
++++ b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/testdata/degraded.yaml
+@@ -0,0 +1,24 @@
++apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
++kind: Kustomization
++metadata:
++  name: my-secrets
++  namespace: default
++spec:
++  interval: 5m
++  path: "./"
++  sourceRef:
++    kind: GitRepository
++    name: my-secrets
++  decryption:
++    provider: sops
++    secretRef:
++      name: sops-age
++status:
++  conditions:
++  - lastTransitionTime: "2020-09-17T07:26:48Z"
++    message: "The Service 'backend' is invalid: spec.type: Unsupported value: 'Ingress'"
++    reason: ValidationFailed
++    status: "False"
++    type: Ready
++  lastAppliedRevision: master/a1afe267b54f38b46b487f6e938a6fd508278c07
++  lastAttemptedRevision: master/7c500d302e38e7e4a3f327343a8a5c21acaaeb87
+diff --git a/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/testdata/healthy.yaml b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/testdata/healthy.yaml
+new file mode 100644
+index 000000000..0fac5ad09
+--- /dev/null
++++ b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/testdata/healthy.yaml
+@@ -0,0 +1,24 @@
++apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
++kind: Kustomization
++metadata:
++  name: my-secrets
++  namespace: default
++spec:
++  interval: 5m
++  path: "./"
++  sourceRef:
++    kind: GitRepository
++    name: my-secrets
++  decryption:
++    provider: sops
++    secretRef:
++      name: sops-age
++status:
++  conditions:
++  - lastTransitionTime: "2020-09-17T19:28:48Z"
++    message: "Applied revision: master/a1afe267b54f38b46b487f6e938a6fd508278c07"
++    reason: ReconciliationSucceeded
++    status: "True"
++    type: Ready
++  lastAppliedRevision: master/a1afe267b54f38b46b487f6e938a6fd508278c07
++  lastAttemptedRevision: master/a1afe267b54f38b46b487f6e938a6fd508278c07
+diff --git a/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/testdata/progressing.yaml b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/testdata/progressing.yaml
+new file mode 100644
+index 000000000..5379a23ba
+--- /dev/null
++++ b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/testdata/progressing.yaml
+@@ -0,0 +1,22 @@
++apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
++kind: Kustomization
++metadata:
++  name: my-secrets
++  namespace: default
++spec:
++  interval: 5m
++  path: "./"
++  sourceRef:
++    kind: GitRepository
++    name: my-secrets
++  decryption:
++    provider: sops
++    secretRef:
++      name: sops-age
++status:
++  conditions:
++  - lastTransitionTime: "2020-09-17T19:28:48Z"
++    message: "reconciliation in progress"
++    reason: Progressing
++    status: "Unknown"
++    type: Ready
+diff --git a/resource_customizations/kustomize.toolkit.fluxcd.io/health_test.yaml b/resource_customizations/kustomize.toolkit.fluxcd.io/health_test.yaml
+new file mode 100644
+index 000000000..07ab00d08
+--- /dev/null
++++ b/resource_customizations/kustomize.toolkit.fluxcd.io/health_test.yaml
+@@ -0,0 +1,13 @@
++tests:
++- healthStatus:
++    status: Progressing
++    message: "Progressing - reconciliation in progress"
++  inputPath: testdata/progressing.yaml
++- healthStatus:
++    status: Degraded
++    message: "ValidationFailed - The Service 'backend' is invalid: spec.type: Unsupported value: 'Ingress'"
++  inputPath: testdata/degraded.yaml
++- healthStatus:
++    status: Healthy
++    message: "ReconciliationSucceeded - Applied revision: master/a1afe267b54f38b46b487f6e938a6fd508278c07"
++  inputPath: testdata/healthy.yaml
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/action_test.yaml b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/action_test.yaml
+new file mode 100644
+index 000000000..e9070b908
+--- /dev/null
++++ b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/action_test.yaml
+@@ -0,0 +1,4 @@
++actionTests:
++- action: reconcile
++  inputPath: testdata/gitrepo.yaml
++  expectedOutputPath: testdata/gitrepo-requested.yaml
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/discovery.lua b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/discovery.lua
+new file mode 100644
+index 000000000..c7f895ffb
+--- /dev/null
++++ b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/discovery.lua
+@@ -0,0 +1,3 @@
++actions = {}
++actions["reconcile"] = {}
++return actions
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/reconcile/action.lua b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/reconcile/action.lua
+new file mode 100644
+index 000000000..f83651d3c
+--- /dev/null
++++ b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/reconcile/action.lua
+@@ -0,0 +1,9 @@
++local os = require("os")
++if obj.metadata == nil then
++    obj.metadata = {}
++end
++if obj.metadata.annotations == nil then
++    obj.metadata.annotations = {}
++end
++obj.metadata.annotations["reconcile.fluxcd.io/requestedAt"] = os.date("!%Y-%m-%dT%XZ")
++return obj
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo-requested.yaml b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo-requested.yaml
+new file mode 100644
+index 000000000..6eb6dc59d
+--- /dev/null
++++ b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo-requested.yaml
+@@ -0,0 +1,33 @@
++apiVersion: source.toolkit.fluxcd.io/v1beta1
++kind: GitRepository
++metadata:
++  annotations:
++    inferred-parent-of: podinfo
++    reconcile.fluxcd.io/requestedAt: "2022-02-27T20:12:28.222377213+07:00"
++  labels:
++    app.kubernetes.io/instance: test-flux
++  name: podinfo
++  namespace: dev
++spec:
++  gitImplementation: go-git
++  interval: 1m0s
++  ref:
++    branch: master
++  timeout: 60s
++  url: https://github.com/openshift-fluxv2-poc/podinfo
++status:
++  artifact:
++    checksum: ce96832ef51e011795626ae68cbfe38deedcff64776e96af618840564a394f1a
++    lastUpdateTime: "2022-02-27T13:26:53Z"
++    path: gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
++    revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794
++    url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
++  conditions:
++  - lastTransitionTime: "2022-02-27T12:00:08Z"
++    message: 'Fetched revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794'
++    reason: GitOperationSucceed
++    status: "True"
++    type: Ready
++  lastHandledReconcileAt: "2022-02-27T20:12:28.222377213+07:00"
++  observedGeneration: 2
++  url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/latest.tar.gz
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo.yaml b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo.yaml
+new file mode 100644
+index 000000000..19a172233
+--- /dev/null
++++ b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo.yaml
+@@ -0,0 +1,32 @@
++apiVersion: source.toolkit.fluxcd.io/v1beta1
++kind: GitRepository
++metadata:
++  annotations:
++    inferred-parent-of: podinfo
++  labels:
++    app.kubernetes.io/instance: test-flux
++  name: podinfo
++  namespace: dev
++spec:
++  gitImplementation: go-git
++  interval: 1m0s
++  ref:
++    branch: master
++  timeout: 60s
++  url: https://github.com/openshift-fluxv2-poc/podinfo
++status:
++  artifact:
++    checksum: ce96832ef51e011795626ae68cbfe38deedcff64776e96af618840564a394f1a
++    lastUpdateTime: "2022-02-27T13:26:53Z"
++    path: gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
++    revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794
++    url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
++  conditions:
++  - lastTransitionTime: "2022-02-27T12:00:08Z"
++    message: 'Fetched revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794'
++    reason: GitOperationSucceed
++    status: "True"
++    type: Ready
++  lastHandledReconcileAt: "2022-02-27T20:12:28.222377213+07:00"
++  observedGeneration: 2
++  url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/latest.tar.gz
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/health.lua b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/health.lua
+new file mode 100644
+index 000000000..61707bd4a
+--- /dev/null
++++ b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/health.lua
+@@ -0,0 +1,25 @@
++hs = {}
++if obj.status ~= nil then
++  if obj.status.conditions ~= nil then
++    ready_status = ""
++    for _, condition in ipairs(obj.status.conditions) do
++      if condition.type == "Ready" then
++        ready_status = condition.status
++        ready_message = condition.reason .. " - " .. condition.message
++      end
++    end
++    if ready_status == "True" then
++      hs.status = "Healthy"
++    elseif ready_status == "False" then
++      hs.status = "Degraded"
++    elseif ready_status == "Unknown" then
++      hs.status = "Progressing"
++    end
++    hs.message = ready_message
++    return hs
++  end
++end
++
++hs.status = "Progressing"
++hs.message = "Waiting for GitRepository to reconcile ..."
++return hs
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/degraded.yaml b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/degraded.yaml
+new file mode 100644
+index 000000000..e2c9b6d62
+--- /dev/null
++++ b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/degraded.yaml
+@@ -0,0 +1,33 @@
++apiVersion: source.toolkit.fluxcd.io/v1beta1
++kind: GitRepository
++metadata:
++  annotations:
++    inferred-parent-of: podinfo
++    reconcile.fluxcd.io/requestedAt: "2022-02-27T22:46:00.477195452+07:00"
++  labels:
++    app.kubernetes.io/instance: test-flux
++  name: podinfo
++  namespace: dev
++spec:
++  gitImplementation: go-git
++  interval: 1m0s
++  ref:
++    branch: master
++  timeout: 60s
++  url: https://github.com/openshift-fluxv2-poc/podinfo
++status:
++  artifact:
++    checksum: ce96832ef51e011795626ae68cbfe38deedcff64776e96af618840564a394f1a
++    lastUpdateTime: "2022-02-27T13:26:53Z"
++    path: gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
++    revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794
++    url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
++  conditions:
++  - lastTransitionTime: "2022-02-27T15:47:37Z"
++    message: 'unable to clone ''https://github.com/openshift-fluxv2-poc/podinfo'': authentication required'
++    reason: GitOperationFailed
++    status: "False"
++    type: Ready
++  lastHandledReconcileAt: "2022-02-27T22:46:00.477195452+07:00"
++  observedGeneration: 2
++  url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/latest.tar.gz
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/healthy.yaml b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/healthy.yaml
+new file mode 100644
+index 000000000..6eb6dc59d
+--- /dev/null
++++ b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/healthy.yaml
+@@ -0,0 +1,33 @@
++apiVersion: source.toolkit.fluxcd.io/v1beta1
++kind: GitRepository
++metadata:
++  annotations:
++    inferred-parent-of: podinfo
++    reconcile.fluxcd.io/requestedAt: "2022-02-27T20:12:28.222377213+07:00"
++  labels:
++    app.kubernetes.io/instance: test-flux
++  name: podinfo
++  namespace: dev
++spec:
++  gitImplementation: go-git
++  interval: 1m0s
++  ref:
++    branch: master
++  timeout: 60s
++  url: https://github.com/openshift-fluxv2-poc/podinfo
++status:
++  artifact:
++    checksum: ce96832ef51e011795626ae68cbfe38deedcff64776e96af618840564a394f1a
++    lastUpdateTime: "2022-02-27T13:26:53Z"
++    path: gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
++    revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794
++    url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
++  conditions:
++  - lastTransitionTime: "2022-02-27T12:00:08Z"
++    message: 'Fetched revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794'
++    reason: GitOperationSucceed
++    status: "True"
++    type: Ready
++  lastHandledReconcileAt: "2022-02-27T20:12:28.222377213+07:00"
++  observedGeneration: 2
++  url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/latest.tar.gz
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/progressing.yaml b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/progressing.yaml
+new file mode 100644
+index 000000000..6054bd04b
+--- /dev/null
++++ b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/progressing.yaml
+@@ -0,0 +1,24 @@
++apiVersion: source.toolkit.fluxcd.io/v1beta1
++kind: GitRepository
++metadata:
++  annotations:
++    inferred-parent-of: podinfo
++    reconcile.fluxcd.io/requestedAt: "2022-02-27T20:12:28.222377213+07:00"
++  labels:
++    app.kubernetes.io/instance: test-flux
++  name: podinfo
++  namespace: dev
++spec:
++  gitImplementation: go-git
++  interval: 1m0s
++  ref:
++    branch: master
++  timeout: 60s
++  url: https://github.com/openshift-fluxv2-poc/podinfo
++status:
++  conditions:
++  - lastTransitionTime: "2022-02-27T12:00:08Z"
++    message: 'reconciliation in progress'
++    reason: Progressing
++    status: "Unknown"
++    type: Ready
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/health_test.yaml b/resource_customizations/source.toolkit.fluxcd.io/health_test.yaml
+new file mode 100644
+index 000000000..4812cf55d
+--- /dev/null
++++ b/resource_customizations/source.toolkit.fluxcd.io/health_test.yaml
+@@ -0,0 +1,13 @@
++tests:
++- healthStatus:
++    status: Progressing
++    message: "Progressing - reconciliation in progress"
++  inputPath: testdata/progressing.yaml
++- healthStatus:
++    status: Degraded
++    message: "GitOperationFailed - unable to clone 'https://github.com/openshift-fluxv2-poc/podinfo': authentication required"
++  inputPath: testdata/degraded.yaml
++- healthStatus:
++    status: Healthy
++    message: "GitOperationSucceed - Fetched revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794"
++  inputPath: testdata/healthy.yaml
