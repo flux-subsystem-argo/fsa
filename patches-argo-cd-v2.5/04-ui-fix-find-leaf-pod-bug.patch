@@ -30,7 +30,7 @@ index eb94298ff..794b0edd6 100644
  
                          const settings = await services.authService.settings();
 diff --git a/ui/src/app/applications/components/utils.tsx b/ui/src/app/applications/components/utils.tsx
-index fe0b6d630..4f64568a7 100644
+index 75bdf9cdd..280abe83f 100644
 --- a/ui/src/app/applications/components/utils.tsx
 +++ b/ui/src/app/applications/components/utils.tsx
 @@ -426,7 +426,8 @@ function getActionItems(

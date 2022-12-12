@@ -10,7 +10,7 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  create mode 100644 controller/state_fsa.go
 
 diff --git a/controller/state.go b/controller/state.go
-index 8897735be..c162403e9 100644
+index 8ee601263..b0bcef850 100644
 --- a/controller/state.go
 +++ b/controller/state.go
 @@ -360,11 +360,17 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
