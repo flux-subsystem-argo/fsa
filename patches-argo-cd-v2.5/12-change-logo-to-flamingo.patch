@@ -15,18 +15,18 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  create mode 100644 ui/src/assets/images/flamingo.png
 
 diff --git a/ui/src/app/login/components/login.scss b/ui/src/app/login/components/login.scss
-index ac93fc3a3..aaabff441 100644
+index ac93fc3a3..2a78bc0dd 100644
 --- a/ui/src/app/login/components/login.scss
 +++ b/ui/src/app/login/components/login.scss
-@@ -158,7 +158,7 @@ $logoNegativePath: 'assets/images/argo.png';
-         }
- 
-         img.logo-image{
--            max-width: 50%;
-+            max-width: 75%;
-             color: #F77530;
-         }
-     }
+@@ -174,7 +174,7 @@ $logoNegativePath: 'assets/images/argo.png';
+         & a {
+             color: $argo-color-gray-2;
+             img{
+-                width: 36px;
++                width: 60px;
+                 filter: invert(50%);
+                 -webkit-filter: invert(50%);
+             }
 diff --git a/ui/src/app/login/components/login.tsx b/ui/src/app/login/components/login.tsx
 index db67ff185..75ecd6a27 100644
 --- a/ui/src/app/login/components/login.tsx
