@@ -4,15 +4,29 @@ From: Chanwit Kaewkasi <chanwit@gmail.com>
 
 Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
 ---
- ui/src/app/login/components/login.tsx |    4 -
- ui/src/app/sidebar/sidebar.tsx        |    2 
- ui/src/assets/images/argo.png         |  Bin
- ui/src/assets/images/argo_o.svg       |  159 +++++++++++++++++++++++++++++----
- ui/src/assets/images/argologo.svg     |  118 ++++++++++++++++++++++++
- ui/src/assets/images/flamingo.png     |  Bin
- 6 files changed, 259 insertions(+), 24 deletions(-)
+ ui/src/app/login/components/login.scss |    2 
+ ui/src/app/login/components/login.tsx  |    4 -
+ ui/src/app/sidebar/sidebar.tsx         |    2 
+ ui/src/assets/images/argo.png          |  Bin
+ ui/src/assets/images/argo_o.svg        |  159 ++++++++++++++++++++++++++++----
+ ui/src/assets/images/argologo.svg      |  118 ++++++++++++++++++++++++
+ ui/src/assets/images/flamingo.png      |  Bin
+ 7 files changed, 260 insertions(+), 25 deletions(-)
  create mode 100644 ui/src/assets/images/flamingo.png
 
+diff --git a/ui/src/app/login/components/login.scss b/ui/src/app/login/components/login.scss
+index ac93fc3a3..aaabff441 100644
+--- a/ui/src/app/login/components/login.scss
++++ b/ui/src/app/login/components/login.scss
+@@ -158,7 +158,7 @@ $logoNegativePath: 'assets/images/argo.png';
+         }
+ 
+         img.logo-image{
+-            max-width: 50%;
++            max-width: 75%;
+             color: #F77530;
+         }
+     }
 diff --git a/ui/src/app/login/components/login.tsx b/ui/src/app/login/components/login.tsx
 index db67ff185..75ecd6a27 100644
 --- a/ui/src/app/login/components/login.tsx
