@@ -4,17 +4,17 @@ From: Chanwit Kaewkasi <chanwit@gmail.com>
 
 Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
 ---
- ui/src/app/login/components/login.tsx |    2 
+ ui/src/app/login/components/login.tsx |    4 -
  ui/src/app/sidebar/sidebar.tsx        |    2 
  ui/src/assets/images/argo.png         |  Bin
  ui/src/assets/images/argo_o.svg       |  159 +++++++++++++++++++++++++++++----
  ui/src/assets/images/argologo.svg     |  118 ++++++++++++++++++++++++
  ui/src/assets/images/flamingo.png     |  Bin
- 6 files changed, 258 insertions(+), 23 deletions(-)
+ 6 files changed, 259 insertions(+), 24 deletions(-)
  create mode 100644 ui/src/assets/images/flamingo.png
 
 diff --git a/ui/src/app/login/components/login.tsx b/ui/src/app/login/components/login.tsx
-index db67ff185..5ad92d7ab 100644
+index db67ff185..75ecd6a27 100644
 --- a/ui/src/app/login/components/login.tsx
 +++ b/ui/src/app/login/components/login.tsx
 @@ -52,7 +52,7 @@ export class Login extends React.Component<RouteComponentProps<{}>, State> {
@@ -26,6 +26,15 @@ index db67ff185..5ad92d7ab 100644
                      <div className='argo__logo' />
                  </div>
                  <div className='login__box'>
+@@ -106,7 +106,7 @@ export class Login extends React.Component<RouteComponentProps<{}>, State> {
+                         <div className='argo-form-row__error-msg'>Login is disabled. Please contact your system administrator.</div>
+                     )}
+                     <div className='login__footer'>
+-                        <a href='https://argoproj.io' target='_blank'>
++                        <a href='https://github.com/flux-subsystem-argo/flamingo' target='_blank'>
+                             <img className='logo-image' src='assets/images/argologo.svg' alt='argo' />
+                         </a>
+                     </div>
 diff --git a/ui/src/app/sidebar/sidebar.tsx b/ui/src/app/sidebar/sidebar.tsx
 index 98626900a..8c57ad0cb 100644
 --- a/ui/src/app/sidebar/sidebar.tsx
