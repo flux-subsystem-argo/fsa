@@ -25,6 +25,38 @@ The git apply command will perform 3-way merge and put merge markings for us to 
 git apply -3 ../patches-argo-cd-v2.2/01<press tab>
 ```
 
+Example of a conflict. The "ours" marker is the base version (the upstream ArgoCD), the "theirs" marker is our patch.
+```
+<<<<<<< ours
+		// If the length of revisions is not same as the length of sources,
+		// we take the revisions from the sources directly for all the sources.
+		if len(revisions) != len(sources) {
+			revisions = make([]string, 0)
+			for _, source := range sources {
+				revisions = append(revisions, source.TargetRevision)
+			}
+		}
+
+		targetObjs, manifestInfoMap, err = m.getRepoObjs(app, sources, appLabelKey, revisions, noCache, noRevisionCache, verifySignature, project)
+		if err != nil {
+			targetObjs = make([]*unstructured.Unstructured, 0)
+			conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
+			failedToLoadObjs = true
+=======
+		if isFluxSubsystemEnabled(app) && app.Spec.Source.IsHelm() {
+			targetObjs, conditions, failedToLoadObjs = m.getFluxHelmTargetObjects(app, conditions, now)
+		} else if isFluxSubsystemEnabled(app) && !app.Spec.Source.IsHelm() {
+			targetObjs, conditions, failedToLoadObjs = m.getFluxKustomizeTargetObjects(app, conditions, now)
+		} else {
+			targetObjs, manifestInfo, err = m.getRepoObjs(app, source, appLabelKey, revision, noCache, noRevisionCache, verifySignature, project)
+			if err != nil {
+				targetObjs = make([]*unstructured.Unstructured, 0)
+				conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
+				failedToLoadObjs = true
+			}
+>>>>>>> theirs
+```
+
 After resolving conflicts, you can commit using the commit message of the original patch.
 Then call `stg repair` to let Stg fix and create the new patch for us.
 
