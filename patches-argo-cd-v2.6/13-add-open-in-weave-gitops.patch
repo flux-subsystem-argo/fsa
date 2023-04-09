@@ -8,7 +8,7 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  1 file changed, 45 insertions(+)
 
 diff --git a/ui/src/app/applications/components/utils.tsx b/ui/src/app/applications/components/utils.tsx
-index dc5f03c65..29122a4a9 100644
+index dc5f03c65..f76f48542 100644
 --- a/ui/src/app/applications/components/utils.tsx
 +++ b/ui/src/app/applications/components/utils.tsx
 @@ -428,6 +428,28 @@ function getResourceActionsMenuItems(resource: ResourceTreeNode, metadata: model
@@ -18,23 +18,23 @@ index dc5f03c65..29122a4a9 100644
 +function getWeaveGitOpsKindPath(resourceKind: string): string {
 +    switch(resourceKind) {
 +    case "GitRepository":
-+        return ""
++        return "git_repo"
 +    case "Bucket":
-+        return ""
++        return "bucket"
 +    case "OCIRepository":
-+        return ""
++        return "oci"
 +    case "HelmChart":
-+        return ""
++        return "helm_chart"
 +    case "Kustomization":
-+        return ""
++        return "kustomization"
 +    case "HelmRelease":
-+        return ""
++        return "helm_release"
 +    case "Terraform":
-+        return ""
++        return "terraform_object"
 +    }
 +
 +    // not match return the same string
-+    return resourceKind
++    return "not_implemented"
 +}
 +
  function getActionItems(
