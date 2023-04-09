@@ -26,10 +26,10 @@ index ad5a7ab2c..81b842060 100644
  	if err != nil {
  		return apiResp, fmt.Errorf("error testing repository connectivity: %w", err)
 diff --git a/server/application/application.go b/server/application/application.go
-index cdb272a3f..6de631e80 100644
+index 1ae8412fc..8c8113e81 100644
 --- a/server/application/application.go
 +++ b/server/application/application.go
-@@ -1879,6 +1879,10 @@ func (s *Server) resolveRevision(ctx context.Context, app *appv1.Application, sy
+@@ -1857,6 +1857,10 @@ func (s *Server) resolveRevision(ctx context.Context, app *appv1.Application, sy
  			// If it's already a commit SHA, then no need to look it up
  			return ambiguousRevision, ambiguousRevision, nil
  		}
