@@ -8,7 +8,7 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  1 file changed, 45 insertions(+)
 
 diff --git a/ui/src/app/applications/components/utils.tsx b/ui/src/app/applications/components/utils.tsx
-index dc5f03c65..213bd1b52 100644
+index dc5f03c65..29122a4a9 100644
 --- a/ui/src/app/applications/components/utils.tsx
 +++ b/ui/src/app/applications/components/utils.tsx
 @@ -428,6 +428,28 @@ function getResourceActionsMenuItems(resource: ResourceTreeNode, metadata: model
@@ -56,10 +56,10 @@ index dc5f03c65..213bd1b52 100644
 +        let clusterName = "Default"
 +        if(application.metadata.annotations !== undefined) {
 +            baseUrl = application.metadata.annotations["weave.gitops.flamingo/base-url"]
-+            className = application.metadata.annotations["weave.gitops.flamingo/cluster-name"]
++            clusterName = application.metadata.annotations["weave.gitops.flamingo/cluster-name"]
 +        }
 +        let kind = getWeaveGitOpsKindPath(resource.kind)
-+        let url = `${baseUrl}/${kind}/details?clusterName=${className}&name=${resource.name}&namespace=${resource.namespace}`
++        let url = `${baseUrl}/${kind}/details?clusterName=${clusterName}&name=${resource.name}&namespace=${resource.namespace}`
 +        items.unshift({
 +            title: 'Open in Weave GitOps ...',
 +            iconClassName: 'fa fa-info-circle',
