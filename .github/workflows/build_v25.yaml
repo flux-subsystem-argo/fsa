@@ -46,6 +46,7 @@ jobs:
         run: |
           ln -s VERSION_25 VERSION
           ln -s patches-argo-cd-v2.5 patches-argo-cd
+          ls -s patches-gitops-engine-v0 patches-gitops-engine
           rm -rf argo-cd || true
           bash -x ./init.sh
           source ./VERSION

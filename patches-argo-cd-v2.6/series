@@ -12,3 +12,4 @@
 11-support-helm-oci-and.patch
 12-change-logo-to-flamingo.patch
 13-add-open-in-weave-gitops.patch
+14-upgrade-to-flux-v2-0-0-rc-1.patch
