@@ -1,0 +1,58 @@
+allow flux and oci schemes
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ reposerver/repository/repository.go |    5 +++++
+ server/application/application.go   |    4 ++++
+ util/argo/argo.go                   |    5 +++++
+ 3 files changed, 14 insertions(+)
+
+diff --git a/reposerver/repository/repository.go b/reposerver/repository/repository.go
+index ad5a7ab2c..81b842060 100644
+--- a/reposerver/repository/repository.go
++++ b/reposerver/repository/repository.go
+@@ -2435,6 +2435,11 @@ func (s *Service) TestRepository(ctx context.Context, q *apiclient.TestRepositor
+ 	}
+ 	check := checks[repo.Type]
+ 	apiResp := &apiclient.TestRepositoryResponse{VerifiedRepository: false}
++
++	// Flux or OCI scheme are special cases
++	if strings.HasPrefix(repo.Repo, "flux://") || strings.HasPrefix(repo.Repo, "oci://") {
++		return apiResp, nil
++	}
+ 	err := check()
+ 	if err != nil {
+ 		return apiResp, fmt.Errorf("error testing repository connectivity: %w", err)
+diff --git a/server/application/application.go b/server/application/application.go
+index 1ae8412fc..8c8113e81 100644
+--- a/server/application/application.go
++++ b/server/application/application.go
+@@ -1857,6 +1857,10 @@ func (s *Server) resolveRevision(ctx context.Context, app *appv1.Application, sy
+ 			// If it's already a commit SHA, then no need to look it up
+ 			return ambiguousRevision, ambiguousRevision, nil
+ 		}
++		if strings.HasPrefix(app.Spec.Source.RepoURL, "flux://") || strings.HasPrefix(app.Spec.Source.RepoURL, "oci://") {
++			// Flux or OCI scheme are special cases
++			return ambiguousRevision, ambiguousRevision, nil
++		}
+ 	}
+ 
+ 	resolveRevisionResponse, err := repoClient.ResolveRevision(ctx, &apiclient.ResolveRevisionRequest{
+diff --git a/util/argo/argo.go b/util/argo/argo.go
+index e8384bcf7..388ce92c4 100644
+--- a/util/argo/argo.go
++++ b/util/argo/argo.go
+@@ -190,6 +190,11 @@ func ValidateRepo(
+ 
+ 	conditions := make([]argoappv1.ApplicationCondition, 0)
+ 
++	// Flux or OCI scheme are special cases
++	if strings.HasPrefix(spec.Source.RepoURL, "flux://") || strings.HasPrefix(spec.Source.RepoURL, "oci://") {
++		return conditions, nil
++	}
++
+ 	// Test the repo
+ 	conn, repoClient, err := repoClientset.NewRepoServerClient()
+ 	if err != nil {

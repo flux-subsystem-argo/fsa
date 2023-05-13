@@ -1,3 +1,10 @@
+.PHONY: init-v27
+init-v27:
+	ln -s VERSION_27 VERSION
+	ln -s patches-gitops-engine-v2.0.0 patches-gitops-engine
+	ln -s patches-argo-cd-v2.7 patches-argo-cd
+	make init
+
 .PHONY: init-v26
 init-v26:
 	ln -s VERSION_26 VERSION
