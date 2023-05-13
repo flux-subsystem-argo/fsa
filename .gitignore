@@ -3,3 +3,4 @@ gitops-engine/
 
 VERSION
 patches-argo-cd
+patches-gitops-engine
