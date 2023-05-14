@@ -6,13 +6,14 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
 ---
  ui/src/app/login/components/login.scss |    2 
  ui/src/app/login/components/login.tsx  |    4 -
+ ui/src/app/sidebar/sidebar.scss        |    2 
  ui/src/app/sidebar/sidebar.tsx         |    6 +
  ui/src/assets/images/argo.png          |  Bin
  ui/src/assets/images/argo_o.svg        |  159 ++++++++++++++++++++++++++++----
  ui/src/assets/images/argologo.svg      |  118 ++++++++++++++++++++++++
  ui/src/assets/images/flamingo.png      |  Bin
  ui/src/assets/images/flamingologo.svg  |   68 ++++++++++++++
- 8 files changed, 330 insertions(+), 27 deletions(-)
+ 9 files changed, 331 insertions(+), 28 deletions(-)
  create mode 100644 ui/src/assets/images/flamingo.png
  create mode 100644 ui/src/assets/images/flamingologo.svg
 
@@ -51,6 +52,19 @@ index db67ff185..75ecd6a27 100644
                              <img className='logo-image' src='assets/images/argologo.svg' alt='argo' />
                          </a>
                      </div>
+diff --git a/ui/src/app/sidebar/sidebar.scss b/ui/src/app/sidebar/sidebar.scss
+index e448bdf4f..50e5e69ae 100644
+--- a/ui/src/app/sidebar/sidebar.scss
++++ b/ui/src/app/sidebar/sidebar.scss
+@@ -44,7 +44,7 @@ $deselected-text: #818d94;
+         }
+ 
+         &__text-logo {
+-            height: 2em;
++            height: 3em;
+             filter: invert(100%);
+         }
+     }
 diff --git a/ui/src/app/sidebar/sidebar.tsx b/ui/src/app/sidebar/sidebar.tsx
 index 4d0d5d6cd..4cc27f95b 100644
 --- a/ui/src/app/sidebar/sidebar.tsx
