@@ -9,10 +9,10 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  2 files changed, 18 insertions(+), 5 deletions(-)
 
 diff --git a/ui/src/app/applications/components/resource-details/resource-details.tsx b/ui/src/app/applications/components/resource-details/resource-details.tsx
-index 90a521f3a..9b4fe4b03 100644
+index 647750937..a440f3db1 100644
 --- a/ui/src/app/applications/components/resource-details/resource-details.tsx
 +++ b/ui/src/app/applications/components/resource-details/resource-details.tsx
-@@ -276,10 +276,12 @@ export const ResourceDetails = (props: ResourceDetailsProps) => {
+@@ -271,10 +271,12 @@ export const ResourceDetails = (props: ResourceDetailsProps) => {
                          if (selectedNode.kind === 'Pod') {
                              podState = liveState;
                          } else {
@@ -30,10 +30,10 @@ index 90a521f3a..9b4fe4b03 100644
  
                          const settings = await services.authService.settings();
 diff --git a/ui/src/app/applications/components/utils.tsx b/ui/src/app/applications/components/utils.tsx
-index 45c8aba56..dc5f03c65 100644
+index 7e4fed73c..c13f6eff4 100644
 --- a/ui/src/app/applications/components/utils.tsx
 +++ b/ui/src/app/applications/components/utils.tsx
-@@ -462,7 +462,8 @@ function getActionItems(
+@@ -457,7 +457,8 @@ function getActionItems(
          });
      }
  
@@ -43,7 +43,7 @@ index 45c8aba56..dc5f03c65 100644
          items.push({
              title: 'Logs',
              iconClassName: 'fa fa-align-left',
-@@ -891,6 +892,16 @@ export const OperationState = ({app, quiet}: {app: appModels.Application; quiet?
+@@ -872,6 +873,16 @@ export const OperationState = ({app, quiet}: {app: appModels.Application; quiet?
      );
  };
  

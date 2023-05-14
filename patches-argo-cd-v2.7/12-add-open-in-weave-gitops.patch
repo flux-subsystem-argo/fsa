@@ -8,10 +8,10 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  1 file changed, 45 insertions(+)
 
 diff --git a/ui/src/app/applications/components/utils.tsx b/ui/src/app/applications/components/utils.tsx
-index dc5f03c65..f76f48542 100644
+index c13f6eff4..3ff4b7841 100644
 --- a/ui/src/app/applications/components/utils.tsx
 +++ b/ui/src/app/applications/components/utils.tsx
-@@ -428,6 +428,28 @@ function getResourceActionsMenuItems(resource: ResourceTreeNode, metadata: model
+@@ -423,6 +423,28 @@ function getResourceActionsMenuItems(resource: ResourceTreeNode, metadata: model
          .catch(() => [] as MenuItem[]);
  }
  
@@ -40,7 +40,7 @@ index dc5f03c65..f76f48542 100644
  function getActionItems(
      resource: ResourceTreeNode,
      application: appModels.Application,
-@@ -471,6 +493,29 @@ function getActionItems(
+@@ -466,6 +488,29 @@ function getActionItems(
          });
      }
  

@@ -6,12 +6,12 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
 ---
  ui/src/app/login/components/login.scss |    2 
  ui/src/app/login/components/login.tsx  |    4 -
- ui/src/app/sidebar/sidebar.tsx         |    2 
+ ui/src/app/sidebar/sidebar.tsx         |    4 -
  ui/src/assets/images/argo.png          |  Bin
  ui/src/assets/images/argo_o.svg        |  159 ++++++++++++++++++++++++++++----
  ui/src/assets/images/argologo.svg      |  118 ++++++++++++++++++++++++
  ui/src/assets/images/flamingo.png      |  Bin
- 7 files changed, 260 insertions(+), 25 deletions(-)
+ 7 files changed, 261 insertions(+), 26 deletions(-)
  create mode 100644 ui/src/assets/images/flamingo.png
 
 diff --git a/ui/src/app/login/components/login.scss b/ui/src/app/login/components/login.scss
@@ -50,18 +50,25 @@ index db67ff185..75ecd6a27 100644
                          </a>
                      </div>
 diff --git a/ui/src/app/sidebar/sidebar.tsx b/ui/src/app/sidebar/sidebar.tsx
-index 98626900a..8c57ad0cb 100644
+index 4d0d5d6cd..c06f3d424 100644
 --- a/ui/src/app/sidebar/sidebar.tsx
 +++ b/ui/src/app/sidebar/sidebar.tsx
-@@ -47,7 +47,7 @@ export const Sidebar = (props: SidebarProps) => {
-     return (
-         <div className={`sidebar ${props.pref.hideSidebar ? 'sidebar--collapsed' : ''}`}>
-             <div className='sidebar__logo'>
--                <img src='assets/images/logo.png' alt='Argo' /> {!props.pref.hideSidebar && 'Argo CD'}
-+                <img src='assets/images/flamingo.png' alt='Flamingo' /> {!props.pref.hideSidebar && 'Flamingo'}
-             </div>
-             <div className='sidebar__version' onClick={props.onVersionClick}>
-                 {loading ? 'Loading...' : error?.state ? 'Unknown' : version?.Version || 'Unknown'}
+@@ -53,13 +53,13 @@ export const Sidebar = (props: SidebarProps) => {
+                     </div>
+                     {!props.pref.hideSidebar && (
+                         <div className='sidebar__logo-container'>
+-                            <img src='assets/images/argologo.svg' alt='Argo' className='sidebar__logo__text-logo' />
++                            <img src='assets/images/flamingo.png' alt='Flamingo' className='sidebar__logo__text-logo' />
+                             <div className='sidebar__version' onClick={props.onVersionClick}>
+                                 {loading ? 'Loading...' : error?.state ? 'Unknown' : version?.Version || 'Unknown'}
+                             </div>
+                         </div>
+                     )}
+-                    <img src='assets/images/logo.png' alt='Argo' className='sidebar__logo__character' />{' '}
++                    <img src='assets/images/logo.png' alt='Flamingo' className='sidebar__logo__character' />{' '}
+                 </div>
+ 
+                 {(props.navItems || []).map(item => (
 diff --git a/ui/src/assets/images/argo.png b/ui/src/assets/images/argo.png
 index 8b21f69deee4fb0b22145e325b5487c974569887..f5f17dc5d61fdf551a85a31cbf31d7f0832da013 100644
 GIT binary patch

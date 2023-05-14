@@ -20,10 +20,10 @@ index 869bb876f..e05fdda3e 100644
 +
 +gitops-engine/
 diff --git a/Dockerfile b/Dockerfile
-index 3a434bc3b..6d69cfc51 100644
+index 1e6393773..e19d11e4b 100644
 --- a/Dockerfile
 +++ b/Dockerfile
-@@ -103,7 +103,9 @@ FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.18 AS argocd-build
+@@ -105,7 +105,9 @@ FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.19.6@sha256:7ce31d15a3
  
  WORKDIR /go/src/github.com/argoproj/argo-cd
  
@@ -33,7 +33,7 @@ index 3a434bc3b..6d69cfc51 100644
  RUN go mod download
  
  # Perform the build
-@@ -117,9 +119,16 @@ RUN GOOS=$TARGETOS GOARCH=$TARGETARCH make argocd-all
+@@ -119,9 +121,16 @@ RUN GOOS=$TARGETOS GOARCH=$TARGETARCH make argocd-all
  # Final image
  ####################################################################################################
  FROM argocd-base
@@ -51,10 +51,10 @@ index 3a434bc3b..6d69cfc51 100644
      ln -s /usr/local/bin/argocd /usr/local/bin/argocd-repo-server && \
      ln -s /usr/local/bin/argocd /usr/local/bin/argocd-cmp-server && \
 diff --git a/go.mod b/go.mod
-index 9a3876f4f..9a26192c5 100644
+index 7bc3dc688..7f3f5ec2e 100644
 --- a/go.mod
 +++ b/go.mod
-@@ -296,4 +296,6 @@ replace (
+@@ -297,4 +297,6 @@ replace (
  	k8s.io/mount-utils => k8s.io/mount-utils v0.24.2
  	k8s.io/pod-security-admission => k8s.io/pod-security-admission v0.24.2
  	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.24.2
