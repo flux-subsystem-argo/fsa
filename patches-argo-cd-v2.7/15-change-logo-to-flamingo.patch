@@ -6,13 +6,15 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
 ---
  ui/src/app/login/components/login.scss |    2 
  ui/src/app/login/components/login.tsx  |    4 -
- ui/src/app/sidebar/sidebar.tsx         |    4 -
+ ui/src/app/sidebar/sidebar.tsx         |    6 +
  ui/src/assets/images/argo.png          |  Bin
  ui/src/assets/images/argo_o.svg        |  159 ++++++++++++++++++++++++++++----
  ui/src/assets/images/argologo.svg      |  118 ++++++++++++++++++++++++
  ui/src/assets/images/flamingo.png      |  Bin
- 7 files changed, 261 insertions(+), 26 deletions(-)
+ ui/src/assets/images/flamingologo.svg  |   68 ++++++++++++++
+ 8 files changed, 330 insertions(+), 27 deletions(-)
  create mode 100644 ui/src/assets/images/flamingo.png
+ create mode 100644 ui/src/assets/images/flamingologo.svg
 
 diff --git a/ui/src/app/login/components/login.scss b/ui/src/app/login/components/login.scss
 index ac93fc3a3..2a78bc0dd 100644
@@ -50,7 +52,7 @@ index db67ff185..75ecd6a27 100644
                          </a>
                      </div>
 diff --git a/ui/src/app/sidebar/sidebar.tsx b/ui/src/app/sidebar/sidebar.tsx
-index 4d0d5d6cd..c06f3d424 100644
+index 4d0d5d6cd..4cc27f95b 100644
 --- a/ui/src/app/sidebar/sidebar.tsx
 +++ b/ui/src/app/sidebar/sidebar.tsx
 @@ -53,13 +53,13 @@ export const Sidebar = (props: SidebarProps) => {
@@ -58,17 +60,24 @@ index 4d0d5d6cd..c06f3d424 100644
                      {!props.pref.hideSidebar && (
                          <div className='sidebar__logo-container'>
 -                            <img src='assets/images/argologo.svg' alt='Argo' className='sidebar__logo__text-logo' />
-+                            <img src='assets/images/flamingo.png' alt='Flamingo' className='sidebar__logo__text-logo' />
++                            <img src='assets/images/flamingologo.svg' alt='Flamingo' className='sidebar__logo__text-logo' />
                              <div className='sidebar__version' onClick={props.onVersionClick}>
                                  {loading ? 'Loading...' : error?.state ? 'Unknown' : version?.Version || 'Unknown'}
                              </div>
                          </div>
                      )}
 -                    <img src='assets/images/logo.png' alt='Argo' className='sidebar__logo__character' />{' '}
-+                    <img src='assets/images/logo.png' alt='Flamingo' className='sidebar__logo__character' />{' '}
++                    <img src='assets/images/flamingo.png' alt='Flamingo' className='sidebar__logo__character' />{' '}
                  </div>
  
                  {(props.navItems || []).map(item => (
+@@ -93,4 +93,4 @@ export const Sidebar = (props: SidebarProps) => {
+             <div id={SIDEBAR_TOOLS_ID} />
+         </div>
+     );
+-};
++};
+\ No newline at end of file
 diff --git a/ui/src/assets/images/argo.png b/ui/src/assets/images/argo.png
 index 8b21f69deee4fb0b22145e325b5487c974569887..f5f17dc5d61fdf551a85a31cbf31d7f0832da013 100644
 GIT binary patch
@@ -7466,3 +7475,77 @@ Ht;7EVBU|SD
 literal 0
 HcmV?d00001
 
+diff --git a/ui/src/assets/images/flamingologo.svg b/ui/src/assets/images/flamingologo.svg
+new file mode 100644
+index 000000000..cb5667c1a
+--- /dev/null
++++ b/ui/src/assets/images/flamingologo.svg
+@@ -0,0 +1,68 @@
++<?xml version="1.0" encoding="UTF-8" standalone="no"?>
++<svg
++   viewBox="0 0 969.97 386.5"
++   version="1.1"
++   id="svg18"
++   xmlns="http://www.w3.org/2000/svg"
++   xmlns:svg="http://www.w3.org/2000/svg"
++   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
++   xmlns:cc="http://creativecommons.org/ns#"
++   xmlns:dc="http://purl.org/dc/elements/1.1/">
++  <metadata
++     id="metadata22">
++    <rdf:RDF>
++      <cc:Work
++         rdf:about="">
++        <dc:format>image/svg+xml</dc:format>
++        <dc:type
++           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
++        <dc:title>Asset 3</dc:title>
++      </cc:Work>
++    </rdf:RDF>
++  </metadata>
++  <defs
++     id="defs4">
++    <style
++       id="style2">.cls-1{fill:#231f20;stroke:#231f20;stroke-miterlimit:10;stroke-width:10px;}</style>
++  </defs>
++  <title
++     id="title6">Asset 3</title>
++  <g
++     aria-label="Flamingo"
++     transform="scale(0.97876166,1.0216992)"
++     id="text2892"
++     style="font-size:218.82px;line-height:1.25;letter-spacing:8.53956px;fill:#231f20;stroke:#231f20;stroke-width:10">
++    <path
++       d="m 31.844788,109.74063 0.320537,133.45029 v 0.10685 c 0,5.76966 4.808057,10.47087 10.684571,10.47087 5.876514,0 10.68457,-4.70121 10.68457,-10.47087 v -0.2137 l -0.106845,-62.1842 55.666609,-0.53423 c 6.3039,0 10.68457,-5.12859 10.68457,-11.32564 0,-4.27383 -3.95329,-10.0435 -9.61611,-10.0435 h -1.1753 l -55.666615,0.53423 -0.106846,-38.89184 76.394681,-0.10684 h 0.10685 c 5.87651,0 10.68457,-4.80806 10.68457,-10.68457 0,-5.87652 -4.80806,-10.684573 -10.68457,-10.684573 h -0.10685 l -87.079251,0.106846 c -5.876514,0 -10.684571,4.701207 -10.684571,10.470877 z"
++       style="font-weight:bold;font-family:Manjari;-inkscape-font-specification:'Manjari Bold'"
++       id="path36392" />
++    <path
++       d="m 177.2537,96.59861 c -5.76967,0 -10.15034,5.23544 -10.15034,10.68457 v 136.44197 c 0,6.30389 5.12859,10.68457 11.32565,10.68457 4.38067,0 10.04349,-3.84645 10.04349,-9.50927 V 107.28318 c 0.10685,-5.23544 -4.38067,-10.68457 -11.2188,-10.68457 z"
++       style="font-weight:bold;font-family:Manjari;-inkscape-font-specification:'Manjari Bold'"
++       id="path36394" />
++    <path
++       d="m 273.72727,134.95622 c -33.22901,0 -58.55144,28.5278 -58.55144,60.26098 0,31.94686 26.07035,59.72675 58.33775,59.72675 14.31733,0 30.23734,-6.09021 37.71654,-18.80485 l 1.1753,8.54766 c 0,5.87651 3.63275,10.68457 9.50927,10.68457 5.87651,0 10.68457,-4.80806 10.68457,-10.68457 l 0.21369,-98.93913 v -0.21369 c 0,-5.87651 -4.80806,-10.68457 -10.68457,-10.68457 -5.87651,0 -9.50927,4.80806 -9.50927,10.68457 l -1.1753,10.25719 c -5.76967,-9.93665 -22.01022,-20.83491 -37.71654,-20.83491 z m 36.86177,60.04729 c 0,20.62122 -16.45424,38.5713 -36.96861,38.5713 -20.62122,0 -37.28915,-17.95008 -37.28915,-38.67815 0,-20.51438 16.24054,-38.5713 37.1823,-38.5713 21.2623,0 37.07546,17.84323 37.07546,38.67815 z"
++       style="font-weight:bold;font-family:Manjari;-inkscape-font-specification:'Manjari Bold'"
++       id="path36396" />
++    <path
++       d="m 407.16946,135.3836 c -9.61611,0 -20.30068,6.09021 -24.7882,15.49263 l -2.03007,-5.87651 c -2.45745,-6.94498 -6.62443,-9.72296 -11.32564,-9.72296 -5.98336,0 -7.79974,4.70121 -7.79974,10.47087 v 98.83228 c 0,5.76967 4.80806,10.47088 10.68457,10.47088 5.87651,0 10.68457,-4.70121 10.68457,-10.36403 v -57.58984 c 0,-20.83491 10.0435,-30.34418 20.51438,-30.34418 11.2188,0 22.86498,11.00511 22.86498,31.0921 v 56.73507 c 0,5.76967 4.70121,10.47088 10.68457,10.47088 5.87651,0 10.68457,-4.70121 10.68457,-10.36403 L 447.2366,187.738 c 0,-16.3474 9.18873,-31.19895 25.0019,-31.19895 14.9584,0 18.37746,14.85155 18.37746,31.0921 l 0.10685,56.73507 c 0,5.76967 4.70121,10.47088 10.68457,10.47088 5.98336,0 10.68457,-4.70121 10.68457,-10.47088 l -0.10685,-56.94876 c 0,-27.56619 -13.03517,-52.1407 -40.49452,-52.1407 -13.7831,0 -25.21559,8.12027 -33.22902,17.309 -6.73128,-9.50927 -17.309,-17.20216 -31.0921,-17.20216 z"
++       style="font-weight:bold;font-family:Manjari;-inkscape-font-specification:'Manjari Bold'"
++       id="path36398" />
++    <path
++       d="m 552.47154,124.48534 c 5.87651,0 9.93665,-5.23544 9.93665,-10.79142 l -0.10685,-6.41074 c -0.10684,-5.76967 -4.70121,-10.577724 -10.68457,-10.577724 -4.48752,0 -10.57772,3.739604 -10.57772,9.081884 l 0.21369,8.12027 c 0.10685,5.98336 4.59436,10.57773 11.2188,10.57773 z m -11.53934,20.19384 0.21369,99.90073 c 0,5.66283 4.70121,10.36404 10.68457,10.36404 5.87652,0 10.68458,-4.59437 10.68458,-10.25719 l -0.2137,-98.93913 v -0.10684 c 0,-6.09021 -5.12859,-10.15034 -11.32564,-10.15034 -4.27383,0 -10.0435,3.84644 -10.0435,9.18873 z"
++       style="font-weight:bold;font-family:Manjari;-inkscape-font-specification:'Manjari Bold'"
++       id="path36400" />
++    <path
++       d="m 612.72444,152.37207 -1.81638,-6.41074 c -1.60268,-5.76967 -4.48752,-10.68457 -10.36403,-10.68457 -5.87651,0 -9.18873,4.80805 -9.18873,10.68457 l 0.21369,98.1912 c 0,5.98336 4.70121,10.79142 10.68457,10.79142 5.87651,0 10.68457,-4.80806 10.68457,-10.68457 l -0.10684,-42.63144 c -0.10685,-27.3525 11.64618,-44.66151 32.69478,-44.66151 8.76135,0 14.42417,5.76967 17.20216,12.07357 2.45745,5.44913 2.99168,12.71464 2.99168,21.0486 v 53.95709 c 0,5.87651 4.80806,10.68457 10.68457,10.68457 5.87651,0 10.68457,-4.80806 10.68457,-10.68457 V 190.0886 c 0,-8.97504 -0.21369,-19.44592 -4.80806,-29.80995 -5.87651,-13.14202 -18.27061,-24.68136 -36.96861,-24.68136 -14.31732,0 -24.89505,9.29558 -32.58794,16.77478 z"
++       style="font-weight:bold;font-family:Manjari;-inkscape-font-specification:'Manjari Bold'"
++       id="path36402" />
++    <path
++       d="m 813.26571,135.06306 c -5.98336,0 -8.12027,4.91491 -9.18873,10.79142 l -1.60268,8.54766 c -8.22712,-12.82149 -20.51438,-19.01854 -34.08379,-19.01854 -31.30579,0 -54.59815,27.99358 -54.59815,58.65829 0,30.87841 23.39921,60.36783 54.59815,60.36783 12.39411,0 25.0019,-4.06014 33.44271,-17.20216 v 10.47088 c 0,20.30068 -17.62954,37.50284 -38.35761,37.50284 -11.32564,0 -23.07867,-5.66282 -30.13049,-14.53101 -1.81637,-2.35061 -5.66282,-4.16699 -8.54765,-4.16699 -5.87652,0 -10.68457,4.80806 -10.68457,10.68457 0,2.13692 1.1753,5.23544 2.45745,6.83813 11.32564,14.21048 28.63465,22.54444 46.79842,22.54444 32.05371,0 59.6199,-26.60458 59.83359,-58.55144 l 0.74792,-102.03765 v -0.2137 c 0,-5.87651 -4.80805,-10.68457 -10.68457,-10.68457 z m -11.64618,59.08568 c 0,19.44592 -14.21048,38.89184 -33.22902,38.89184 -19.23222,0 -33.12216,-19.76646 -33.12216,-38.99869 0,-19.33907 14.10363,-37.28915 33.4427,-37.28915 19.01854,0 32.90848,18.05693 32.90848,37.396 z"
++       style="font-weight:bold;font-family:Manjari;-inkscape-font-specification:'Manjari Bold'"
++       id="path36404" />
++    <path
++       d="m 906.9613,135.49045 c -32.16056,0 -58.55145,27.45934 -58.55145,59.83359 0,32.69479 26.49774,59.19252 58.55145,59.19252 32.2674,0 58.65829,-27.13881 58.65829,-59.19252 0,-32.48109 -25.96351,-59.83359 -58.65829,-59.83359 z m -36.96862,60.04728 c 0,-20.83491 15.81317,-38.46445 36.96862,-38.46445 20.94176,0 37.07546,17.5227 37.07546,38.25076 0,20.30069 -16.45424,37.60969 -36.96862,37.60969 -20.19383,0 -37.07546,-16.66793 -37.07546,-37.396 z"
++       style="font-weight:bold;font-family:Manjari;-inkscape-font-specification:'Manjari Bold'"
++       id="path36406" />
++  </g>
++</svg>
