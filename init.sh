@@ -1,3 +1,6 @@
+#!/bin/bash
+set -e
+
 source ./VERSION
 
 bash -x ./init-gitops-engine.sh
