@@ -8,18 +8,18 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  1 file changed, 13 insertions(+)
 
 diff --git a/ui/src/app/applications/components/application-node-info/application-node-info.tsx b/ui/src/app/applications/components/application-node-info/application-node-info.tsx
-index ee0e2516c..abf4c6174 100644
+index 8ac1a46d5..e63b023a7 100644
 --- a/ui/src/app/applications/components/application-node-info/application-node-info.tsx
 +++ b/ui/src/app/applications/components/application-node-info/application-node-info.tsx
-@@ -11,6 +11,7 @@ import {ApplicationResourcesDiff} from '../application-resources-diff/applicatio
- import {
-     ComparisonStatusIcon,
-     formatCreationTimestamp,
-+    getKstatusCondition,
-     getPodReadinessGatesState,
-     getPodReadinessGatesState as _getPodReadinessGatesState,
-     getPodStateReason,
-@@ -69,6 +70,18 @@ export const ApplicationNodeInfo = (props: {
+@@ -9,6 +9,7 @@ import {services} from '../../../shared/services';
+ import {ResourceTreeNode} from '../application-resource-tree/application-resource-tree';
+ import {ApplicationResourcesDiff} from '../application-resources-diff/application-resources-diff';
+ import {ComparisonStatusIcon, formatCreationTimestamp, getPodReadinessGatesState, getPodStateReason, HealthStatusIcon} from '../utils';
++import {getKstatusCondition} from '../utils';
+ import './application-node-info.scss';
+ import {ReadinessGatesNotPassedWarning} from './readiness-gates-not-passed-warning';
+ 
+@@ -61,6 +62,18 @@ export const ApplicationNodeInfo = (props: {
              attributes.push({title: 'HOSTNAMES', value: hostNames});
          } else if (props.node.kind === 'ReplicaSet') {
              attributes.push({title: 'REPLICAS', value: `${props.live.spec?.replicas || 0}/${props.live.status?.readyReplicas || 0}/${props.live.status?.replicas || 0}`});

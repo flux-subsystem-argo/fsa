@@ -8,7 +8,7 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  1 file changed, 45 insertions(+)
 
 diff --git a/ui/src/app/applications/components/utils.tsx b/ui/src/app/applications/components/utils.tsx
-index c13f6eff4..3ff4b7841 100644
+index 62f5633b7..c19533d8a 100644
 --- a/ui/src/app/applications/components/utils.tsx
 +++ b/ui/src/app/applications/components/utils.tsx
 @@ -423,6 +423,28 @@ function getResourceActionsMenuItems(resource: ResourceTreeNode, metadata: model
