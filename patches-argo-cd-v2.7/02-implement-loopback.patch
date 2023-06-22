@@ -10,14 +10,14 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  create mode 100644 controller/state_fsa.go
 
 diff --git a/controller/state.go b/controller/state.go
-index cac9b75af..169f697a2 100644
+index ff09a00c7..051ee1e4b 100644
 --- a/controller/state.go
 +++ b/controller/state.go
-@@ -418,11 +418,17 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
+@@ -405,11 +405,17 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
  			}
  		}
  
--		targetObjs, manifestInfoMap, err = m.getRepoObjs(app, sources, appLabelKey, revisions, noCache, noRevisionCache, verifySignature, project)
+-		targetObjs, manifestInfos, err = m.getRepoObjs(app, sources, appLabelKey, revisions, noCache, noRevisionCache, verifySignature, project)
 -		if err != nil {
 -			targetObjs = make([]*unstructured.Unstructured, 0)
 -			conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
@@ -27,7 +27,7 @@ index cac9b75af..169f697a2 100644
 +		} else if isFluxSubsystemEnabled(app) && !app.Spec.Source.IsHelm() {
 +			targetObjs, conditions, failedToLoadObjs = m.getFluxKustomizeTargetObjects(app, conditions, now)
 +		} else {
-+			targetObjs, manifestInfoMap, err = m.getRepoObjs(app, sources, appLabelKey, revisions, noCache, noRevisionCache, verifySignature, project)
++			targetObjs, manifestInfos, err = m.getRepoObjs(app, sources, appLabelKey, revisions, noCache, noRevisionCache, verifySignature, project)
 +			if err != nil {
 +				targetObjs = make([]*unstructured.Unstructured, 0)
 +				conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})

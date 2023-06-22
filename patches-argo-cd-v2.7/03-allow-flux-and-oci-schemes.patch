@@ -10,10 +10,10 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  3 files changed, 14 insertions(+)
 
 diff --git a/reposerver/repository/repository.go b/reposerver/repository/repository.go
-index 1ad311fe5..bed5f3b8c 100644
+index 4882fe7e0..dbd333fb8 100644
 --- a/reposerver/repository/repository.go
 +++ b/reposerver/repository/repository.go
-@@ -2438,6 +2438,11 @@ func (s *Service) TestRepository(ctx context.Context, q *apiclient.TestRepositor
+@@ -2437,6 +2437,11 @@ func (s *Service) TestRepository(ctx context.Context, q *apiclient.TestRepositor
  	}
  	check := checks[repo.Type]
  	apiResp := &apiclient.TestRepositoryResponse{VerifiedRepository: false}
