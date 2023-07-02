@@ -1,0 +1,40 @@
+ui: show kstatus in ui
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ .../application-node-info.tsx                      |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/ui/src/app/applications/components/application-node-info/application-node-info.tsx b/ui/src/app/applications/components/application-node-info/application-node-info.tsx
+index 05c3dcae9..40ae85330 100644
+--- a/ui/src/app/applications/components/application-node-info/application-node-info.tsx
++++ b/ui/src/app/applications/components/application-node-info/application-node-info.tsx
+@@ -10,6 +10,7 @@ import {services} from '../../../shared/services';
+ import {ResourceTreeNode} from '../application-resource-tree/application-resource-tree';
+ import {ApplicationResourcesDiff} from '../application-resources-diff/application-resources-diff';
+ import {ComparisonStatusIcon, formatCreationTimestamp, getPodReadinessGatesState, getPodStateReason, HealthStatusIcon} from '../utils';
++import {getKstatusCondition} from '../utils';
+ import './application-node-info.scss';
+ import {ReadinessGatesNotPassedWarning} from './readiness-gates-not-passed-warning';
+ 
+@@ -138,6 +139,18 @@ export const ApplicationNodeInfo = (props: {
+             attributes.push({title: 'HOSTNAMES', value: hostNames});
+         } else if (props.node.kind === 'ReplicaSet') {
+             attributes.push({title: 'REPLICAS', value: `${props.live.spec?.replicas || 0}/${props.live.status?.readyReplicas || 0}/${props.live.status?.replicas || 0}`});
++        } else if (props.node.kind == 'Kustomization' ||
++                    props.node.kind == "HelmRelease" ||
++                    props.node.kind == "GitRepository" ||
++                    props.node.kind == "Bucket" ||
++                    props.node.kind == "OCIRepository" ||
++                    props.node.kind == "Terraform") {
++            const condition = getKstatusCondition("Ready", props.live)
++            if (condition) {
++                attributes.push({title: 'READY', value: condition.status})
++                attributes.push({title: 'REASON', value: condition.reason})
++                attributes.push({title: 'STATUS', value: condition.message})
++            }
+         }
+     }
+ 

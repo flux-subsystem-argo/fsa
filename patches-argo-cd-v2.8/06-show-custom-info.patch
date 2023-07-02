@@ -1,0 +1,57 @@
+show custom info
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ controller/cache/info.go |   37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+
+diff --git a/controller/cache/info.go b/controller/cache/info.go
+index cf0d12318..a81734fa1 100644
+--- a/controller/cache/info.go
++++ b/controller/cache/info.go
+@@ -57,6 +57,43 @@ func populateNodeInfo(un *unstructured.Unstructured, res *ResourceInfo, customLa
+ 		case "VirtualService":
+ 			populateIstioVirtualServiceInfo(un, res)
+ 		}
++	// TODO add Flux here
++	case "source.toolkit.fluxcd.io":
++		if revision, found, err := unstructured.NestedString(un.Object, "status", "artifact", "revision"); found && err == nil {
++			parts := strings.SplitN(revision, "/", 2)
++			if len(parts) == 1 {
++				if len(parts[0]) >= 8 {
++					res.Info = append(res.Info, v1alpha1.InfoItem{Name: "Revision", Value: parts[0][0:8]})
++				}
++			} else if len(parts) == 2 {
++				res.Info = append(res.Info, v1alpha1.InfoItem{Name: "Branch", Value: parts[0]})
++				if len(parts[1]) >= 8 {
++					res.Info = append(res.Info, v1alpha1.InfoItem{Name: "Revision", Value: parts[1][0:8]})
++				}
++			}
++		}
++	case "helm.toolkit.fluxcd.io":
++		switch gvk.Kind {
++		case "HelmRelease":
++			if applied, found, err := unstructured.NestedString(un.Object, "status", "lastAppliedRevision"); found && err == nil {
++				if attempted, found, err := unstructured.NestedString(un.Object, "status", "lastAppliedRevision"); found && err == nil {
++					res.Info = append(res.Info, v1alpha1.InfoItem{Name: "Revision", Value: fmt.Sprintf("%s/%s", attempted, applied)})
++				}
++			}
++		}
++	case "kustomize.toolkit.fluxcd.io", "infra.contrib.fluxcd.io":
++		switch gvk.Kind {
++		case "Kustomization", "Terraform":
++			if revision, found, err := unstructured.NestedString(un.Object, "status", "lastAppliedRevision"); found && err == nil {
++				parts := strings.SplitN(revision, "/", 2)
++				if len(parts) == 2 {
++					res.Info = append(res.Info, v1alpha1.InfoItem{Name: "Branch", Value: parts[0]})
++					if len(parts[1]) >= 8 {
++						res.Info = append(res.Info, v1alpha1.InfoItem{Name: "Revision", Value: parts[1][0:8]})
++					}
++				}
++			}
++		}
+ 	}
+ 
+ 	for k, v := range un.GetAnnotations() {

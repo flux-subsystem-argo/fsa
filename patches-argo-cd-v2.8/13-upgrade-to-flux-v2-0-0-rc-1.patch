@@ -1,0 +1,140 @@
+upgrade to flux v2.0.0-rc.1
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ controller/state_fsa.go |   69 +++++++++++++++++++++++++++++++++--------------
+ controller/sync_fsa.go  |    4 +--
+ 2 files changed, 51 insertions(+), 22 deletions(-)
+
+diff --git a/controller/state_fsa.go b/controller/state_fsa.go
+index 18f41430d..c75f83f73 100644
+--- a/controller/state_fsa.go
++++ b/controller/state_fsa.go
+@@ -42,6 +42,51 @@ func IsAutoCreateFluxResourcesEnabled(app *v1alpha1.Application) bool {
+ 	return true
+ }
+ 
++type fluxKind string
++
++const (
++	HelmRelease   fluxKind = "HelmRelease"
++	Kustomization fluxKind = "Kustomization"
++
++	HelmRepository fluxKind = "HelmRepository"
++	GitRepository  fluxKind = "GitRepository"
++	Bucket         fluxKind = "Bucket"
++	OCIRepository  fluxKind = "OCIRepository"
++)
++
++var supportedKinds = map[fluxKind]schema.GroupVersionKind{
++	Kustomization: {
++		Group:   "kustomize.toolkit.fluxcd.io",
++		Version: "v1",
++		Kind:    "Kustomization",
++	},
++	HelmRelease: {
++		Group:   "helm.toolkit.fluxcd.io",
++		Version: "v2beta1",
++		Kind:    "HelmRelease",
++	},
++	HelmRepository: {
++		Group:   "source.toolkit.fluxcd.io",
++		Version: "v1beta2",
++		Kind:    "HelmRepository",
++	},
++	GitRepository: {
++		Group:   "source.toolkit.fluxcd.io",
++		Version: "v1",
++		Kind:    "GitRepository",
++	},
++	Bucket: {
++		Group:   "source.toolkit.fluxcd.io",
++		Version: "v1beta2",
++		Kind:    "Bucket",
++	},
++	OCIRepository: {
++		Group:   "source.toolkit.fluxcd.io",
++		Version: "v1beta2",
++		Kind:    "OCIRepository",
++	},
++}
++
+ func (m *appStateManager) getFluxHelmTargetObjects(app *v1alpha1.Application, conditions []v1alpha1.ApplicationCondition, now v1.Time) ([]*unstructured.Unstructured, []v1alpha1.ApplicationCondition, bool) {
+ 	var (
+ 		targetObjs       []*unstructured.Unstructured
+@@ -76,11 +121,7 @@ func (m *appStateManager) getFluxHelmTargetObjects(app *v1alpha1.Application, co
+ 		hl         *unstructured.Unstructured
+ 		hlNotFound bool
+ 	)
+-	hl, err = m.kubectl.GetResource(context.TODO(), config, schema.GroupVersionKind{
+-		Group:   "helm.toolkit.fluxcd.io",
+-		Version: "v2beta1",
+-		Kind:    "HelmRelease",
+-	}, app.Name, app.Spec.Destination.Namespace)
++	hl, err = m.kubectl.GetResource(context.TODO(), config, supportedKinds[Kustomization], app.Name, app.Spec.Destination.Namespace)
+ 
+ 	if err != nil {
+ 		// err might be a "not found" one
+@@ -106,11 +147,7 @@ func (m *appStateManager) getFluxHelmTargetObjects(app *v1alpha1.Application, co
+ 					if !found {
+ 						sourceNS = hl.GetNamespace()
+ 					}
+-					source, err = m.kubectl.GetResource(context.Background(), config, schema.GroupVersionKind{
+-						Group:   "source.toolkit.fluxcd.io",
+-						Version: "v1beta2",
+-						Kind:    sourceKind,
+-					}, sourceName, sourceNS)
++					source, err = m.kubectl.GetResource(context.Background(), config, supportedKinds[fluxKind(sourceKind)], sourceName, sourceNS)
+ 					if err != nil {
+ 						if strings.Contains(err.Error(), "not found") {
+ 							sourceNotFound = true
+@@ -170,11 +207,7 @@ func (m *appStateManager) getFluxKustomizeTargetObjects(app *v1alpha1.Applicatio
+ 		ks         *unstructured.Unstructured
+ 		ksNotFound bool
+ 	)
+-	ks, err = m.kubectl.GetResource(context.TODO(), config, schema.GroupVersionKind{
+-		Group:   "kustomize.toolkit.fluxcd.io",
+-		Version: "v1beta2",
+-		Kind:    "Kustomization",
+-	}, app.Name, app.Spec.Destination.Namespace)
++	ks, err = m.kubectl.GetResource(context.TODO(), config, supportedKinds[Kustomization], app.Name, app.Spec.Destination.Namespace)
+ 
+ 	if err != nil {
+ 		// err might be a "not found" one
+@@ -200,11 +233,7 @@ func (m *appStateManager) getFluxKustomizeTargetObjects(app *v1alpha1.Applicatio
+ 					if !found {
+ 						sourceNS = ks.GetNamespace()
+ 					}
+-					source, err = m.kubectl.GetResource(context.Background(), config, schema.GroupVersionKind{
+-						Group:   "source.toolkit.fluxcd.io",
+-						Version: "v1beta2",
+-						Kind:    sourceKind,
+-					}, sourceName, sourceNS)
++					source, err = m.kubectl.GetResource(context.Background(), config, supportedKinds[fluxKind(sourceKind)], sourceName, sourceNS)
+ 					if err != nil {
+ 						if strings.Contains(err.Error(), "not found") {
+ 							sourceNotFound = true
+diff --git a/controller/sync_fsa.go b/controller/sync_fsa.go
+index 65ccf8782..e4b0f3ca6 100644
+--- a/controller/sync_fsa.go
++++ b/controller/sync_fsa.go
+@@ -172,7 +172,7 @@ spec:
+ 
+ 	ks := map[string]interface{}{}
+ 	ksTemplate := []byte(`
+-apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
++apiVersion: kustomize.toolkit.fluxcd.io/v1
+ kind: Kustomization
+ metadata:
+   name: undefined
+@@ -240,7 +240,7 @@ spec:
+ 
+ 	ks := map[string]interface{}{}
+ 	ksTemplate := []byte(`
+-apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
++apiVersion: kustomize.toolkit.fluxcd.io/v1
+ kind: Kustomization
+ metadata:
+   name: undefined
