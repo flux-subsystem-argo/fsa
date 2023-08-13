@@ -8,7 +8,7 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  1 file changed, 13 insertions(+)
 
 diff --git a/ui/src/app/applications/components/application-node-info/application-node-info.tsx b/ui/src/app/applications/components/application-node-info/application-node-info.tsx
-index 05c3dcae9..40ae85330 100644
+index 18ff44e38..dc5f1f539 100644
 --- a/ui/src/app/applications/components/application-node-info/application-node-info.tsx
 +++ b/ui/src/app/applications/components/application-node-info/application-node-info.tsx
 @@ -10,6 +10,7 @@ import {services} from '../../../shared/services';

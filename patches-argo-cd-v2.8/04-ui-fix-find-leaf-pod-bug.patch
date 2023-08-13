@@ -30,10 +30,10 @@ index 647750937..a440f3db1 100644
  
                          const settings = await services.authService.settings();
 diff --git a/ui/src/app/applications/components/utils.tsx b/ui/src/app/applications/components/utils.tsx
-index d096658bb..9b82df266 100644
+index 0df581ca0..14385989d 100644
 --- a/ui/src/app/applications/components/utils.tsx
 +++ b/ui/src/app/applications/components/utils.tsx
-@@ -457,7 +457,8 @@ function getActionItems(
+@@ -458,7 +458,8 @@ function getActionItems(
          });
      }
  
@@ -42,8 +42,8 @@ index d096658bb..9b82df266 100644
 +    if (resource.kind === 'Pod') {
          items.push({
              title: 'Logs',
-             iconClassName: 'fa fa-align-left',
-@@ -872,6 +873,16 @@ export const OperationState = ({app, quiet}: {app: appModels.Application; quiet?
+             iconClassName: 'fa fa-fw fa-align-left',
+@@ -873,6 +874,16 @@ export const OperationState = ({app, quiet}: {app: appModels.Application; quiet?
      );
  };
  
