@@ -20,7 +20,7 @@ index ab17deb0d..c28c77a6a 100644
 +
 +gitops-engine/
 diff --git a/Dockerfile b/Dockerfile
-index eefecc754..9b12e5456 100644
+index f69e34cce..07e9df925 100644
 --- a/Dockerfile
 +++ b/Dockerfile
 @@ -105,7 +105,9 @@ FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.20.6@sha256:8e5a0067e6
@@ -51,7 +51,7 @@ index eefecc754..9b12e5456 100644
      ln -s /usr/local/bin/argocd /usr/local/bin/argocd-repo-server && \
      ln -s /usr/local/bin/argocd /usr/local/bin/argocd-cmp-server && \
 diff --git a/go.mod b/go.mod
-index b30af56fc..b7af667a0 100644
+index de020933a..00b641f31 100644
 --- a/go.mod
 +++ b/go.mod
 @@ -306,4 +306,6 @@ replace (

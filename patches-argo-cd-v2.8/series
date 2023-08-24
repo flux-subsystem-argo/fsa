@@ -1,4 +1,4 @@
-# This series applies on GIT commit 804d4b8ca6bc4c2cf02c5c971aa923ec5b8623f0
+# This series applies on Git commit 2bc94af7bd081bc4682c2c6dc005f6336c754c2b
 01-build-with-local-gitops-engine.patch
 02-implement-loopback.patch
 03-allow-flux-and-oci-schemes.patch
