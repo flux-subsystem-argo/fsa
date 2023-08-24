@@ -1,11 +1,29 @@
 # Development guide lines
 
-## How to port patches across Argo CD versions
+## Stacked Git
 
-First, call `make init` to initialize the workspace branch and apply all patches.
+We use Stacked Git to maintain out-of-tree patches.
+Please make sure that you have  installed `stg` version v2.3.0 or later.
 
 ```shell
-make init
+$ stg version
+
+Stacked Git 2.3.0
+Copyright (C) 2005-2022 StGit authors
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+SPDX-License-Identifier: GPL-2.0-only
+git version 2.41.0
+
+```
+
+## How to port patches across Argo CD versions
+
+First, call `make init-v{argocd vesion}` to initialize the workspace branch and apply all patches.
+For example `make init-v27` initializes Argo CD v2.7 base version, and applies Flamingo patches for v2.7.
+
+```shell
+make init-v27
 cd argocd
 ```
 
