@@ -14,3 +14,4 @@
 13-upgrade-to-flux-v2-0-0-rc-1.patch
 14-fix-branch-and-rev-info-of.patch
 15-change-logo-to-flamingo.patch
+16-override-workload-name-with.patch
