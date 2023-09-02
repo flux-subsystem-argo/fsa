@@ -248,3 +248,31 @@ Now at patch "fix-branch-and-rev-info-of"
 $ cd ..
 $ make export-patches
 ```
+
+## Tilt Dev Workflow
+
+Create KinD cluster with registry.
+
+```
+kind-with-registry.sh
+```
+
+Install Flux
+
+```
+flux install
+```
+
+Install Flamingo
+
+```
+flamingo insall --dev --verion=v2.8.1-dev
+```
+
+Apply patches
+
+```
+make init-v28
+cd argo-cd
+tilt up
+```
