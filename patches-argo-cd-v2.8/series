@@ -15,3 +15,4 @@
 14-fix-branch-and-rev-info-of.patch
 15-change-logo-to-flamingo.patch
 16-override-workload-name-with.patch
+17-add-tilt-dev-support.patch
