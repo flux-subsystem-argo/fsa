@@ -19,3 +19,4 @@
 18-add-oci-repository.patch
 19-fix-special-supported-schemes.patch
 20-add-health-message-for-helm.patch
+21-fix-health-message-in.patch
