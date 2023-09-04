@@ -9,7 +9,7 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  2 files changed, 51 insertions(+), 22 deletions(-)
 
 diff --git a/controller/state_fsa.go b/controller/state_fsa.go
-index 18f41430d..c75f83f73 100644
+index 18f41430d..28cd571cc 100644
 --- a/controller/state_fsa.go
 +++ b/controller/state_fsa.go
 @@ -42,6 +42,51 @@ func IsAutoCreateFluxResourcesEnabled(app *v1alpha1.Application) bool {

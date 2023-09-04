@@ -16,3 +16,4 @@
 15-change-logo-to-flamingo.patch
 16-override-workload-name-with.patch
 17-add-tilt-dev-support.patch
+18-add-oci-repository.patch
