@@ -73,7 +73,7 @@ index 18f41430d..c75f83f73 100644
 -		Version: "v2beta1",
 -		Kind:    "HelmRelease",
 -	}, app.Name, app.Spec.Destination.Namespace)
-+	hl, err = m.kubectl.GetResource(context.TODO(), config, supportedKinds[Kustomization], app.Name, app.Spec.Destination.Namespace)
++	hl, err = m.kubectl.GetResource(context.TODO(), config, supportedKinds[HelmRelease], app.Name, app.Spec.Destination.Namespace)
  
  	if err != nil {
  		// err might be a "not found" one
