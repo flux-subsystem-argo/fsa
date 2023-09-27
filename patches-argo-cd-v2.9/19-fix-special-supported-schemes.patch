@@ -1,0 +1,29 @@
+fix special supported schemes
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ server/application/application.go |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/server/application/application.go b/server/application/application.go
+index 534d1aa47..905f2b28e 100644
+--- a/server/application/application.go
++++ b/server/application/application.go
+@@ -2010,10 +2010,11 @@ func (s *Server) resolveRevision(ctx context.Context, app *appv1.Application, sy
+ 			// If it's already a commit SHA, then no need to look it up
+ 			return ambiguousRevision, ambiguousRevision, nil
+ 		}
+-		if strings.HasPrefix(app.Spec.Source.RepoURL, "flux://") || strings.HasPrefix(app.Spec.Source.RepoURL, "oci://") {
+-			// Flux or OCI scheme are special cases
+-			return ambiguousRevision, ambiguousRevision, nil
+-		}
++	}
++
++	if strings.HasPrefix(app.Spec.Source.RepoURL, "flux://") || strings.HasPrefix(app.Spec.Source.RepoURL, "oci://") {
++		// Flux or OCI scheme are special cases
++		return ambiguousRevision, ambiguousRevision, nil
+ 	}
+ 
+ 	resolveRevisionResponse, err := repoClient.ResolveRevision(ctx, &apiclient.ResolveRevisionRequest{

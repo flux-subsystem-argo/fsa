@@ -1,0 +1,22 @@
+fix health message in kustomization
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ .../Kustomization/health.lua                       |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/health.lua b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/health.lua
+index 9a9122d44..496e5c025 100644
+--- a/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/health.lua
++++ b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/health.lua
+@@ -5,7 +5,7 @@ if obj.status ~= nil then
+     for _, condition in ipairs(obj.status.conditions) do
+       if condition.type == "Ready" then
+         ready_status = condition.status
+-        ready_message = condition.reason .. " - " .. condition.message
++        ready_message = condition.message
+       end
+     end
+     if ready_status == "True" then

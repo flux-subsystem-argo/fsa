@@ -1,0 +1,85 @@
+override workload name with label
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ controller/state_fsa.go |   28 ++++++++++++++++++++++++++--
+ controller/sync_fsa.go  |    4 ++--
+ 2 files changed, 28 insertions(+), 4 deletions(-)
+
+diff --git a/controller/state_fsa.go b/controller/state_fsa.go
+index 28cd571cc..33a813cc8 100644
+--- a/controller/state_fsa.go
++++ b/controller/state_fsa.go
+@@ -87,6 +87,30 @@ var supportedKinds = map[fluxKind]schema.GroupVersionKind{
+ 	},
+ }
+ 
++const FlamingoWorkloadNameLabel = "flamingo/workload-name"
++
++func getWorkloadName(app *v1alpha1.Application) string {
++	// if app is nil, return empty string
++	if app == nil {
++		return ""
++	}
++
++	// if app has no labels, return app name
++	if app.GetLabels() == nil {
++		return app.Name
++	}
++
++	// if app has labels, check if it has the workload name label
++	// if it does, return the workload name
++	labels := app.GetLabels()
++	if name, ok := labels[FlamingoWorkloadNameLabel]; ok {
++		return name
++	}
++
++	// otherwise, return app name
++	return app.Name
++}
++
+ func (m *appStateManager) getFluxHelmTargetObjects(app *v1alpha1.Application, conditions []v1alpha1.ApplicationCondition, now v1.Time) ([]*unstructured.Unstructured, []v1alpha1.ApplicationCondition, bool) {
+ 	var (
+ 		targetObjs       []*unstructured.Unstructured
+@@ -121,7 +145,7 @@ func (m *appStateManager) getFluxHelmTargetObjects(app *v1alpha1.Application, co
+ 		hl         *unstructured.Unstructured
+ 		hlNotFound bool
+ 	)
+-	hl, err = m.kubectl.GetResource(context.TODO(), config, supportedKinds[HelmRelease], app.Name, app.Spec.Destination.Namespace)
++	hl, err = m.kubectl.GetResource(context.TODO(), config, supportedKinds[HelmRelease], getWorkloadName(app), app.Spec.Destination.Namespace)
+ 
+ 	if err != nil {
+ 		// err might be a "not found" one
+@@ -207,7 +231,7 @@ func (m *appStateManager) getFluxKustomizeTargetObjects(app *v1alpha1.Applicatio
+ 		ks         *unstructured.Unstructured
+ 		ksNotFound bool
+ 	)
+-	ks, err = m.kubectl.GetResource(context.TODO(), config, supportedKinds[Kustomization], app.Name, app.Spec.Destination.Namespace)
++	ks, err = m.kubectl.GetResource(context.TODO(), config, supportedKinds[Kustomization], getWorkloadName(app), app.Spec.Destination.Namespace)
+ 
+ 	if err != nil {
+ 		// err might be a "not found" one
+diff --git a/controller/sync_fsa.go b/controller/sync_fsa.go
+index e4b0f3ca6..9c4aaca6c 100644
+--- a/controller/sync_fsa.go
++++ b/controller/sync_fsa.go
+@@ -95,7 +95,7 @@ spec:
+ 		return nil, nil, err
+ 	}
+ 	releaseObj := &unstructured.Unstructured{Object: release}
+-	releaseObj.SetName(app.GetName())
++	releaseObj.SetName(getWorkloadName(app))
+ 	releaseObj.SetNamespace(app.Spec.Destination.Namespace)
+ 	if err := unstructured.SetNestedField(release, app.Spec.Source.Chart,
+ 		"spec", "chart", "spec", "chart"); err != nil {
+@@ -191,7 +191,7 @@ spec:
+ 		return nil, nil, err
+ 	}
+ 	ksObj := &unstructured.Unstructured{Object: ks}
+-	ksObj.SetName(app.GetName())
++	ksObj.SetName(getWorkloadName(app))
+ 	ksObj.SetNamespace(app.Spec.Destination.Namespace)
+ 	if err := unstructured.SetNestedField(ks, app.Spec.Source.Path,
+ 		"spec", "path"); err != nil {

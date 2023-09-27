@@ -1,0 +1,325 @@
+add oci repository verification support
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ .../GitRepository/actions/action_test.yaml         |    4 --
+ .../actions/testdata/gitrepo-requested.yaml        |   33 --------------------
+ .../GitRepository/actions/testdata/gitrepo.yaml    |   32 -------------------
+ .../GitRepository/health.lua                       |    2 +
+ .../GitRepository/testdata/degraded.yaml           |   33 --------------------
+ .../GitRepository/testdata/healthy.yaml            |   33 --------------------
+ .../GitRepository/testdata/progressing.yaml        |   24 ---------------
+ .../OCIRepository/actions/discovery.lua            |    3 ++
+ .../OCIRepository/actions/reconcile/action.lua     |    9 +++++
+ .../OCIRepository/health.lua                       |   25 +++++++++++++++
+ .../source.toolkit.fluxcd.io/health_test.yaml      |   13 --------
+ .../application-node-info.tsx                      |    2 +
+ 12 files changed, 39 insertions(+), 174 deletions(-)
+ delete mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/action_test.yaml
+ delete mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo-requested.yaml
+ delete mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo.yaml
+ delete mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/degraded.yaml
+ delete mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/healthy.yaml
+ delete mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/progressing.yaml
+ create mode 100644 resource_customizations/source.toolkit.fluxcd.io/OCIRepository/actions/discovery.lua
+ create mode 100644 resource_customizations/source.toolkit.fluxcd.io/OCIRepository/actions/reconcile/action.lua
+ create mode 100644 resource_customizations/source.toolkit.fluxcd.io/OCIRepository/health.lua
+ delete mode 100644 resource_customizations/source.toolkit.fluxcd.io/health_test.yaml
+
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/action_test.yaml b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/action_test.yaml
+deleted file mode 100644
+index e9070b908..000000000
+--- a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/action_test.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-actionTests:
+-- action: reconcile
+-  inputPath: testdata/gitrepo.yaml
+-  expectedOutputPath: testdata/gitrepo-requested.yaml
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo-requested.yaml b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo-requested.yaml
+deleted file mode 100644
+index 6eb6dc59d..000000000
+--- a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo-requested.yaml
++++ /dev/null
+@@ -1,33 +0,0 @@
+-apiVersion: source.toolkit.fluxcd.io/v1beta1
+-kind: GitRepository
+-metadata:
+-  annotations:
+-    inferred-parent-of: podinfo
+-    reconcile.fluxcd.io/requestedAt: "2022-02-27T20:12:28.222377213+07:00"
+-  labels:
+-    app.kubernetes.io/instance: test-flux
+-  name: podinfo
+-  namespace: dev
+-spec:
+-  gitImplementation: go-git
+-  interval: 1m0s
+-  ref:
+-    branch: master
+-  timeout: 60s
+-  url: https://github.com/openshift-fluxv2-poc/podinfo
+-status:
+-  artifact:
+-    checksum: ce96832ef51e011795626ae68cbfe38deedcff64776e96af618840564a394f1a
+-    lastUpdateTime: "2022-02-27T13:26:53Z"
+-    path: gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
+-    revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794
+-    url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
+-  conditions:
+-  - lastTransitionTime: "2022-02-27T12:00:08Z"
+-    message: 'Fetched revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794'
+-    reason: GitOperationSucceed
+-    status: "True"
+-    type: Ready
+-  lastHandledReconcileAt: "2022-02-27T20:12:28.222377213+07:00"
+-  observedGeneration: 2
+-  url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/latest.tar.gz
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo.yaml b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo.yaml
+deleted file mode 100644
+index 19a172233..000000000
+--- a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo.yaml
++++ /dev/null
+@@ -1,32 +0,0 @@
+-apiVersion: source.toolkit.fluxcd.io/v1beta1
+-kind: GitRepository
+-metadata:
+-  annotations:
+-    inferred-parent-of: podinfo
+-  labels:
+-    app.kubernetes.io/instance: test-flux
+-  name: podinfo
+-  namespace: dev
+-spec:
+-  gitImplementation: go-git
+-  interval: 1m0s
+-  ref:
+-    branch: master
+-  timeout: 60s
+-  url: https://github.com/openshift-fluxv2-poc/podinfo
+-status:
+-  artifact:
+-    checksum: ce96832ef51e011795626ae68cbfe38deedcff64776e96af618840564a394f1a
+-    lastUpdateTime: "2022-02-27T13:26:53Z"
+-    path: gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
+-    revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794
+-    url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
+-  conditions:
+-  - lastTransitionTime: "2022-02-27T12:00:08Z"
+-    message: 'Fetched revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794'
+-    reason: GitOperationSucceed
+-    status: "True"
+-    type: Ready
+-  lastHandledReconcileAt: "2022-02-27T20:12:28.222377213+07:00"
+-  observedGeneration: 2
+-  url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/latest.tar.gz
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/health.lua b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/health.lua
+index 61707bd4a..41edb672c 100644
+--- a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/health.lua
++++ b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/health.lua
+@@ -5,7 +5,7 @@ if obj.status ~= nil then
+     for _, condition in ipairs(obj.status.conditions) do
+       if condition.type == "Ready" then
+         ready_status = condition.status
+-        ready_message = condition.reason .. " - " .. condition.message
++        ready_message = condition.message
+       end
+     end
+     if ready_status == "True" then
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/degraded.yaml b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/degraded.yaml
+deleted file mode 100644
+index e2c9b6d62..000000000
+--- a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/degraded.yaml
++++ /dev/null
+@@ -1,33 +0,0 @@
+-apiVersion: source.toolkit.fluxcd.io/v1beta1
+-kind: GitRepository
+-metadata:
+-  annotations:
+-    inferred-parent-of: podinfo
+-    reconcile.fluxcd.io/requestedAt: "2022-02-27T22:46:00.477195452+07:00"
+-  labels:
+-    app.kubernetes.io/instance: test-flux
+-  name: podinfo
+-  namespace: dev
+-spec:
+-  gitImplementation: go-git
+-  interval: 1m0s
+-  ref:
+-    branch: master
+-  timeout: 60s
+-  url: https://github.com/openshift-fluxv2-poc/podinfo
+-status:
+-  artifact:
+-    checksum: ce96832ef51e011795626ae68cbfe38deedcff64776e96af618840564a394f1a
+-    lastUpdateTime: "2022-02-27T13:26:53Z"
+-    path: gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
+-    revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794
+-    url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
+-  conditions:
+-  - lastTransitionTime: "2022-02-27T15:47:37Z"
+-    message: 'unable to clone ''https://github.com/openshift-fluxv2-poc/podinfo'': authentication required'
+-    reason: GitOperationFailed
+-    status: "False"
+-    type: Ready
+-  lastHandledReconcileAt: "2022-02-27T22:46:00.477195452+07:00"
+-  observedGeneration: 2
+-  url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/latest.tar.gz
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/healthy.yaml b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/healthy.yaml
+deleted file mode 100644
+index 6eb6dc59d..000000000
+--- a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/healthy.yaml
++++ /dev/null
+@@ -1,33 +0,0 @@
+-apiVersion: source.toolkit.fluxcd.io/v1beta1
+-kind: GitRepository
+-metadata:
+-  annotations:
+-    inferred-parent-of: podinfo
+-    reconcile.fluxcd.io/requestedAt: "2022-02-27T20:12:28.222377213+07:00"
+-  labels:
+-    app.kubernetes.io/instance: test-flux
+-  name: podinfo
+-  namespace: dev
+-spec:
+-  gitImplementation: go-git
+-  interval: 1m0s
+-  ref:
+-    branch: master
+-  timeout: 60s
+-  url: https://github.com/openshift-fluxv2-poc/podinfo
+-status:
+-  artifact:
+-    checksum: ce96832ef51e011795626ae68cbfe38deedcff64776e96af618840564a394f1a
+-    lastUpdateTime: "2022-02-27T13:26:53Z"
+-    path: gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
+-    revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794
+-    url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
+-  conditions:
+-  - lastTransitionTime: "2022-02-27T12:00:08Z"
+-    message: 'Fetched revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794'
+-    reason: GitOperationSucceed
+-    status: "True"
+-    type: Ready
+-  lastHandledReconcileAt: "2022-02-27T20:12:28.222377213+07:00"
+-  observedGeneration: 2
+-  url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/latest.tar.gz
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/progressing.yaml b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/progressing.yaml
+deleted file mode 100644
+index 6054bd04b..000000000
+--- a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/testdata/progressing.yaml
++++ /dev/null
+@@ -1,24 +0,0 @@
+-apiVersion: source.toolkit.fluxcd.io/v1beta1
+-kind: GitRepository
+-metadata:
+-  annotations:
+-    inferred-parent-of: podinfo
+-    reconcile.fluxcd.io/requestedAt: "2022-02-27T20:12:28.222377213+07:00"
+-  labels:
+-    app.kubernetes.io/instance: test-flux
+-  name: podinfo
+-  namespace: dev
+-spec:
+-  gitImplementation: go-git
+-  interval: 1m0s
+-  ref:
+-    branch: master
+-  timeout: 60s
+-  url: https://github.com/openshift-fluxv2-poc/podinfo
+-status:
+-  conditions:
+-  - lastTransitionTime: "2022-02-27T12:00:08Z"
+-    message: 'reconciliation in progress'
+-    reason: Progressing
+-    status: "Unknown"
+-    type: Ready
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/OCIRepository/actions/discovery.lua b/resource_customizations/source.toolkit.fluxcd.io/OCIRepository/actions/discovery.lua
+new file mode 100644
+index 000000000..c7f895ffb
+--- /dev/null
++++ b/resource_customizations/source.toolkit.fluxcd.io/OCIRepository/actions/discovery.lua
+@@ -0,0 +1,3 @@
++actions = {}
++actions["reconcile"] = {}
++return actions
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/OCIRepository/actions/reconcile/action.lua b/resource_customizations/source.toolkit.fluxcd.io/OCIRepository/actions/reconcile/action.lua
+new file mode 100644
+index 000000000..f83651d3c
+--- /dev/null
++++ b/resource_customizations/source.toolkit.fluxcd.io/OCIRepository/actions/reconcile/action.lua
+@@ -0,0 +1,9 @@
++local os = require("os")
++if obj.metadata == nil then
++    obj.metadata = {}
++end
++if obj.metadata.annotations == nil then
++    obj.metadata.annotations = {}
++end
++obj.metadata.annotations["reconcile.fluxcd.io/requestedAt"] = os.date("!%Y-%m-%dT%XZ")
++return obj
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/OCIRepository/health.lua b/resource_customizations/source.toolkit.fluxcd.io/OCIRepository/health.lua
+new file mode 100644
+index 000000000..73e2694a1
+--- /dev/null
++++ b/resource_customizations/source.toolkit.fluxcd.io/OCIRepository/health.lua
+@@ -0,0 +1,25 @@
++hs = {}
++if obj.status ~= nil then
++  if obj.status.conditions ~= nil then
++    ready_status = ""
++    for _, condition in ipairs(obj.status.conditions) do
++      if condition.type == "Ready" then
++        ready_status = condition.status
++        ready_message = condition.message
++      end
++    end
++    if ready_status == "True" then
++      hs.status = "Healthy"
++    elseif ready_status == "False" then
++      hs.status = "Degraded"
++    elseif ready_status == "Unknown" then
++      hs.status = "Progressing"
++    end
++    hs.message = ready_message
++    return hs
++  end
++end
++
++hs.status = "Progressing"
++hs.message = "Waiting for OCIRepository to reconcile ..."
++return hs
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/health_test.yaml b/resource_customizations/source.toolkit.fluxcd.io/health_test.yaml
+deleted file mode 100644
+index 4812cf55d..000000000
+--- a/resource_customizations/source.toolkit.fluxcd.io/health_test.yaml
++++ /dev/null
+@@ -1,13 +0,0 @@
+-tests:
+-- healthStatus:
+-    status: Progressing
+-    message: "Progressing - reconciliation in progress"
+-  inputPath: testdata/progressing.yaml
+-- healthStatus:
+-    status: Degraded
+-    message: "GitOperationFailed - unable to clone 'https://github.com/openshift-fluxv2-poc/podinfo': authentication required"
+-  inputPath: testdata/degraded.yaml
+-- healthStatus:
+-    status: Healthy
+-    message: "GitOperationSucceed - Fetched revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794"
+-  inputPath: testdata/healthy.yaml
+diff --git a/ui/src/app/applications/components/application-node-info/application-node-info.tsx b/ui/src/app/applications/components/application-node-info/application-node-info.tsx
+index dc5f1f539..4f3f540e6 100644
+--- a/ui/src/app/applications/components/application-node-info/application-node-info.tsx
++++ b/ui/src/app/applications/components/application-node-info/application-node-info.tsx
+@@ -149,7 +149,7 @@ export const ApplicationNodeInfo = (props: {
+             if (condition) {
+                 attributes.push({title: 'READY', value: condition.status})
+                 attributes.push({title: 'REASON', value: condition.reason})
+-                attributes.push({title: 'STATUS', value: condition.message})
++                attributes.push({title: 'MESSAGE', value: condition.message})
+             }
+         }
+     }
