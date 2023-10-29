@@ -12,7 +12,7 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  create mode 100644 argocd-server-dev.yaml
 
 diff --git a/Makefile b/Makefile
-index aceebcc66..2b12b5616 100644
+index 4c1191881..795da41ae 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -291,20 +291,23 @@ build-ui:

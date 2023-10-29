@@ -20,10 +20,10 @@ index ab17deb0d..c28c77a6a 100644
 +
 +gitops-engine/
 diff --git a/Dockerfile b/Dockerfile
-index f69e34cce..07e9df925 100644
+index 2c31b5077..5e6bb92f0 100644
 --- a/Dockerfile
 +++ b/Dockerfile
-@@ -105,7 +105,9 @@ FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.20.6@sha256:8e5a0067e6
+@@ -105,7 +105,9 @@ FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.21.3@sha256:02d7116222
  
  WORKDIR /go/src/github.com/argoproj/argo-cd
  
@@ -51,10 +51,10 @@ index f69e34cce..07e9df925 100644
      ln -s /usr/local/bin/argocd /usr/local/bin/argocd-repo-server && \
      ln -s /usr/local/bin/argocd /usr/local/bin/argocd-cmp-server && \
 diff --git a/go.mod b/go.mod
-index de020933a..00b641f31 100644
+index 7129d4248..965d67524 100644
 --- a/go.mod
 +++ b/go.mod
-@@ -306,4 +306,6 @@ replace (
+@@ -324,4 +324,6 @@ replace (
  	k8s.io/mount-utils => k8s.io/mount-utils v0.24.2
  	k8s.io/pod-security-admission => k8s.io/pod-security-admission v0.24.2
  	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.24.2

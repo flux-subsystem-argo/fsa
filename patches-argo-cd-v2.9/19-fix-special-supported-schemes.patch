@@ -8,10 +8,10 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  1 file changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/server/application/application.go b/server/application/application.go
-index 534d1aa47..905f2b28e 100644
+index aa6993cb0..05d02a090 100644
 --- a/server/application/application.go
 +++ b/server/application/application.go
-@@ -2010,10 +2010,11 @@ func (s *Server) resolveRevision(ctx context.Context, app *appv1.Application, sy
+@@ -2019,10 +2019,11 @@ func (s *Server) resolveRevision(ctx context.Context, app *appv1.Application, sy
  			// If it's already a commit SHA, then no need to look it up
  			return ambiguousRevision, ambiguousRevision, nil
  		}

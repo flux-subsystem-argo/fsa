@@ -53,7 +53,7 @@ index db67ff185..75ecd6a27 100644
                          </a>
                      </div>
 diff --git a/ui/src/app/sidebar/sidebar.scss b/ui/src/app/sidebar/sidebar.scss
-index e448bdf4f..50e5e69ae 100644
+index a3ff7a035..153dc5eb8 100644
 --- a/ui/src/app/sidebar/sidebar.scss
 +++ b/ui/src/app/sidebar/sidebar.scss
 @@ -44,7 +44,7 @@ $deselected-text: #818d94;
