@@ -1,4 +1,4 @@
-# This series applies on Git commit 6648d31671984ed8fc521fe494cd4df8c1f5061a
+# This series applies on Git commit ba62a0a86d19f71a65ec2b510a39ea55497e1580
 01-build-with-local-gitops-engine.patch
 02-implement-loopback.patch
 03-allow-flux-and-oci-schemes.patch
@@ -11,7 +11,7 @@
 10-add-flux-options-to-the-ui.patch
 11-support-helm-oci-and.patch
 12-add-open-in-weave-gitops.patch
-13-upgrade-to-flux-v2-0-0-rc-1.patch
+13-upgrade-to-flux-v2.0.0-rc.1.patch
 14-fix-branch-and-rev-info-of.patch
 15-change-logo-to-flamingo.patch
 16-override-workload-name-with.patch

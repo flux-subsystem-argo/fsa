@@ -10,10 +10,10 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  3 files changed, 14 insertions(+)
 
 diff --git a/reposerver/repository/repository.go b/reposerver/repository/repository.go
-index 1498dd81d..90039a9e5 100644
+index bff2983a1..2d910a5d6 100644
 --- a/reposerver/repository/repository.go
 +++ b/reposerver/repository/repository.go
-@@ -2460,6 +2460,11 @@ func (s *Service) TestRepository(ctx context.Context, q *apiclient.TestRepositor
+@@ -2465,6 +2465,11 @@ func (s *Service) TestRepository(ctx context.Context, q *apiclient.TestRepositor
  	}
  	check := checks[repo.Type]
  	apiResp := &apiclient.TestRepositoryResponse{VerifiedRepository: false}
@@ -41,7 +41,7 @@ index 12484685e..aa6993cb0 100644
  
  	resolveRevisionResponse, err := repoClient.ResolveRevision(ctx, &apiclient.ResolveRevisionRequest{
 diff --git a/util/argo/argo.go b/util/argo/argo.go
-index 9187726ab..541b8b24f 100644
+index 36e513cf0..ae3ceea5a 100644
 --- a/util/argo/argo.go
 +++ b/util/argo/argo.go
 @@ -291,6 +291,11 @@ func ValidateRepo(

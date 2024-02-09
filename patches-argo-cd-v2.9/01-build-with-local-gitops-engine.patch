@@ -51,13 +51,13 @@ index 2c31b5077..5e6bb92f0 100644
      ln -s /usr/local/bin/argocd /usr/local/bin/argocd-repo-server && \
      ln -s /usr/local/bin/argocd /usr/local/bin/argocd-cmp-server && \
 diff --git a/go.mod b/go.mod
-index 7129d4248..965d67524 100644
+index af07829a3..671c26d59 100644
 --- a/go.mod
 +++ b/go.mod
 @@ -324,4 +324,6 @@ replace (
- 	k8s.io/mount-utils => k8s.io/mount-utils v0.24.2
- 	k8s.io/pod-security-admission => k8s.io/pod-security-admission v0.24.2
- 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.24.2
+ 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.24.17
+ 	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.24.17
+ 	k8s.io/sample-controller => k8s.io/sample-controller v0.24.17
 +
 +	github.com/argoproj/gitops-engine v0.7.1-0.20230906152414-b0fffe419a0f => ./gitops-engine
  )
