@@ -1,3 +1,3 @@
-BASE_VERSION=v2.8.6
+BASE_VERSION=v2.8.10
 SUFFIX_VERSION=fl.$(cat patches-argo-cd/series | cut -d- -f1 | tail -1)
 GITOPS_ENGINE_VERSION=425d65e07695a741d90b248f2f365f6a4329c23d
