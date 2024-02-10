@@ -1,0 +1,29 @@
+fix flux 2.2 oci helmrepository health check
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ .../HelmRepository/health.lua                      |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/HelmRepository/health.lua b/resource_customizations/source.toolkit.fluxcd.io/HelmRepository/health.lua
+index f5bd9b0bc..18f0cc1bf 100644
+--- a/resource_customizations/source.toolkit.fluxcd.io/HelmRepository/health.lua
++++ b/resource_customizations/source.toolkit.fluxcd.io/HelmRepository/health.lua
+@@ -1,4 +1,15 @@
+ hs = {}
++
++if obj.spec.type = "oci" then
++-- https://fluxcd.io/flux/components/source/helmrepositories/#helm-oci-repository
++-- Because the OCI Helm repository is a data container,
++-- there’s nothing to report for READY and STATUS columns above.
++-- The existence of the object can be considered to be ready for use.
++  hs.status  = "Healthy"
++  hs.message = "OCI HelmRepository is ready to use."
++  return hs
++end
++
+ if obj.status ~= nil then
+   if obj.status.conditions ~= nil then
+     ready_status = ""
