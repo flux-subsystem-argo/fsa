@@ -14,7 +14,7 @@ index f5bd9b0bc..18f0cc1bf 100644
 @@ -1,4 +1,15 @@
  hs = {}
 +
-+if obj.spec.type = "oci" then
++if obj.spec.type == "oci" then
 +-- https://fluxcd.io/flux/components/source/helmrepositories/#helm-oci-repository
 +-- Because the OCI Helm repository is a data container,
 +-- there’s nothing to report for READY and STATUS columns above.
