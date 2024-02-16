@@ -7,7 +7,7 @@ on:
       - main
     paths:
       - patches-argo-cd-v2.9/**
-      - patches-gitops-engine-v2.0.0/**
+      - patches-gitops-engine-v2.2.0/**
       - VERSION_29
       - .github/workflows/build_v29.yaml
 
@@ -46,7 +46,7 @@ jobs:
         run: |
           ln -s VERSION_29 VERSION
           ln -s patches-argo-cd-v2.9 patches-argo-cd
-          ln -s patches-gitops-engine-v2.0.0 patches-gitops-engine
+          ln -s patches-gitops-engine-v2.2.0 patches-gitops-engine
           rm -rf argo-cd || true
           bash -x ./init.sh
           source ./VERSION

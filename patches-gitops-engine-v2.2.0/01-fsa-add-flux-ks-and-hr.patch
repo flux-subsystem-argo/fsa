@@ -1,0 +1,492 @@
+FSA - add Flux KS and HR references
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ pkg/cache/cluster_ref_test.go |   59 +++++++++++++++++++++
+ pkg/cache/cluster_test.go     |   45 +++++++++-------
+ pkg/cache/object.go           |  115 +++++++++++++++++++++++++++++++++++++++++
+ pkg/cache/references.go       |   58 ++++++++++++++++++++-
+ pkg/cache/resource_test.go    |   90 ++++++++++++++++++++++++++++++++
+ 5 files changed, 347 insertions(+), 20 deletions(-)
+ create mode 100644 pkg/cache/cluster_ref_test.go
+ create mode 100644 pkg/cache/object.go
+
+diff --git a/pkg/cache/cluster_ref_test.go b/pkg/cache/cluster_ref_test.go
+new file mode 100644
+index 0000000..36e449b
+--- /dev/null
++++ b/pkg/cache/cluster_ref_test.go
+@@ -0,0 +1,59 @@
++package cache
++
++import (
++	"github.com/stretchr/testify/assert"
++	"github.com/stretchr/testify/require"
++	"testing"
++)
++
++func TestKustomization(t *testing.T) {
++	gitRepo := strToUnstructured(`
++apiVersion: source.toolkit.fluxcd.io/v1
++kind: GitRepository
++metadata:
++  name: podinfo
++  namespace: dev
++  uid: "1000"
++  annotations:
++    inferred-parent-of: podinfo
++spec:
++  interval: 1m0s
++  ref:
++    branch: master
++  url: https://github.com/stefanprodan/podinfo
++`)
++
++	ks := strToUnstructured(`
++apiVersion: kustomize.toolkit.fluxcd.io/v1
++kind: Kustomization
++metadata:
++  name: podinfo
++  namespace: dev
++  uid: "1001"
++spec:
++  interval: 1m0s
++  path: ./deploy/overlays/dev
++  prune: true
++  sourceRef:
++    kind: GitRepository
++    name: podinfo
++status:
++  inventory:
++    entries:
++      - id: _dev__Namespace
++        v: v1
++      - id: dev_redis-config-bd2fcfgt6k__ConfigMap
++        v: v1
++      - id: dev_backend__Service
++        v: v1
++`)
++
++	cluster := newCluster(t, gitRepo.DeepCopyObject(), ks.DeepCopyObject())
++	err := cluster.EnsureSynced()
++	require.NoError(t, err)
++
++	for i := 0; i < 5; i++ {
++		children := getChildren(cluster, gitRepo)
++		assert.Len(t, children, 1)
++	}
++}
+diff --git a/pkg/cache/cluster_test.go b/pkg/cache/cluster_test.go
+index 68221ab..6f98bfd 100644
+--- a/pkg/cache/cluster_test.go
++++ b/pkg/cache/cluster_test.go
+@@ -99,6 +99,14 @@ func newCluster(t *testing.T, objs ...runtime.Object) *clusterCache {
+ 		GroupKind:            schema.GroupKind{Group: "apps", Kind: "StatefulSet"},
+ 		GroupVersionResource: schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "statefulsets"},
+ 		Meta:                 metav1.APIResource{Namespaced: true},
++	}, {
++		GroupKind:            schema.GroupKind{Group: "source.toolkit.fluxcd.io", Kind: "GitRepository"},
++		GroupVersionResource: schema.GroupVersionResource{Group: "source.toolkit.fluxcd.io", Version: "v1", Resource: "gitrepositories"},
++		Meta:                 metav1.APIResource{Namespaced: true},
++	}, {
++		GroupKind:            schema.GroupKind{Group: "kustomize.toolkit.fluxcd.io", Kind: "Kustomization"},
++		GroupVersionResource: schema.GroupVersionResource{Group: "kustomize.toolkit.fluxcd.io", Version: "v1", Resource: "kustomizations"},
++		Meta:                 metav1.APIResource{Namespaced: true},
+ 	}}
+ 
+ 	cache := NewClusterCache(
+@@ -492,23 +500,23 @@ metadata:
+ func TestGetManagedLiveObjsFailedConversion(t *testing.T) {
+ 	cronTabGroup := "stable.example.com"
+ 
+-	testCases := []struct{
+-		name string
+-		localConvertFails bool
++	testCases := []struct {
++		name                         string
++		localConvertFails            bool
+ 		expectConvertToVersionCalled bool
+-		expectGetResourceCalled bool
++		expectGetResourceCalled      bool
+ 	}{
+ 		{
+-			name: "local convert fails, so GetResource is called",
+-			localConvertFails: true,
++			name:                         "local convert fails, so GetResource is called",
++			localConvertFails:            true,
+ 			expectConvertToVersionCalled: true,
+-			expectGetResourceCalled: true,
++			expectGetResourceCalled:      true,
+ 		},
+ 		{
+-			name: "local convert succeeds, so GetResource is not called",
+-			localConvertFails: false,
++			name:                         "local convert succeeds, so GetResource is not called",
++			localConvertFails:            false,
+ 			expectConvertToVersionCalled: true,
+-			expectGetResourceCalled: false,
++			expectGetResourceCalled:      false,
+ 		},
+ 	}
+ 
+@@ -557,7 +565,6 @@ metadata:
+ 					return testCronTab(), nil
+ 				})
+ 
+-
+ 			managedObjs, err := cluster.GetManagedLiveObjs([]*unstructured.Unstructured{targetDeploy}, func(r *Resource) bool {
+ 				return true
+ 			})
+@@ -816,25 +823,25 @@ func testPod() *corev1.Pod {
+ 
+ func testCRD() *apiextensions.CustomResourceDefinition {
+ 	return &apiextensions.CustomResourceDefinition{
+-		TypeMeta:   metav1.TypeMeta{
++		TypeMeta: metav1.TypeMeta{
+ 			APIVersion: "apiextensions.k8s.io/v1",
+ 		},
+ 		ObjectMeta: metav1.ObjectMeta{
+ 			Name: "crontabs.stable.example.com",
+ 		},
+-		Spec:       apiextensions.CustomResourceDefinitionSpec{
++		Spec: apiextensions.CustomResourceDefinitionSpec{
+ 			Group: "stable.example.com",
+ 			Versions: []apiextensions.CustomResourceDefinitionVersion{
+ 				{
+-					Name: "v1",
+-					Served: true,
++					Name:    "v1",
++					Served:  true,
+ 					Storage: true,
+ 					Schema: &apiextensions.CustomResourceValidation{
+ 						OpenAPIV3Schema: &apiextensions.JSONSchemaProps{
+ 							Type: "object",
+ 							Properties: map[string]apiextensions.JSONSchemaProps{
+ 								"cronSpec": {Type: "string"},
+-								"image": {Type: "string"},
++								"image":    {Type: "string"},
+ 								"replicas": {Type: "integer"},
+ 							},
+ 						},
+@@ -855,14 +862,14 @@ func testCRD() *apiextensions.CustomResourceDefinition {
+ func testCronTab() *unstructured.Unstructured {
+ 	return &unstructured.Unstructured{Object: map[string]interface{}{
+ 		"apiVersion": "stable.example.com/v1",
+-		"kind": "CronTab",
++		"kind":       "CronTab",
+ 		"metadata": map[string]interface{}{
+-			"name": "test-crontab",
++			"name":      "test-crontab",
+ 			"namespace": "default",
+ 		},
+ 		"spec": map[string]interface{}{
+ 			"cronSpec": "* * * * */5",
+-			"image": "my-awesome-cron-image",
++			"image":    "my-awesome-cron-image",
+ 		},
+ 	}}
+ }
+diff --git a/pkg/cache/object.go b/pkg/cache/object.go
+new file mode 100644
+index 0000000..1d6f63c
+--- /dev/null
++++ b/pkg/cache/object.go
+@@ -0,0 +1,115 @@
++package cache
++
++import (
++	"fmt"
++	"strings"
++
++	rbacv1 "k8s.io/api/rbac/v1"
++	"k8s.io/apimachinery/pkg/runtime/schema"
++)
++
++const (
++	// Separates inventory fields. This string is allowable as a
++	// ConfigMap key, but it is not allowed as a character in
++	// resource name.
++	fieldSeparator = "_"
++	// Transform colons in the RBAC resource names to double
++	// underscore.
++	colonTranscoded = "__"
++)
++
++var (
++	NilObjMetadata = ObjMetadata{}
++)
++
++// RBACGroupKind is a map of the RBAC resources. Needed since name validation
++// is different than other k8s resources.
++var RBACGroupKind = map[schema.GroupKind]bool{
++	{Group: rbacv1.GroupName, Kind: "Role"}:               true,
++	{Group: rbacv1.GroupName, Kind: "ClusterRole"}:        true,
++	{Group: rbacv1.GroupName, Kind: "RoleBinding"}:        true,
++	{Group: rbacv1.GroupName, Kind: "ClusterRoleBinding"}: true,
++}
++
++// ObjMetadata organizes and stores the indentifying information
++// for an object. This struct (as a string) is stored in a
++// inventory object to keep track of sets of applied objects.
++type ObjMetadata struct {
++	Namespace string
++	Name      string
++	GroupKind schema.GroupKind
++}
++
++// ParseObjMetadata takes a string, splits it into its four fields,
++// and returns an ObjMetadata struct storing the four fields.
++// Example inventory string:
++//
++//   test-namespace_test-name_apps_ReplicaSet
++//
++// Returns an error if unable to parse and create the ObjMetadata struct.
++//
++// NOTE: name field can contain double underscore (__), which represents
++// a colon. RBAC resources can have this additional character (:) in their name.
++func ParseObjMetadata(s string) (ObjMetadata, error) {
++	// Parse first field namespace
++	index := strings.Index(s, fieldSeparator)
++	if index == -1 {
++		return NilObjMetadata, fmt.Errorf("unable to parse stored object metadata: %s", s)
++	}
++	namespace := s[:index]
++	s = s[index+1:]
++	// Next, parse last field kind
++	index = strings.LastIndex(s, fieldSeparator)
++	if index == -1 {
++		return NilObjMetadata, fmt.Errorf("unable to parse stored object metadata: %s", s)
++	}
++	kind := s[index+1:]
++	s = s[:index]
++	// Next, parse next to last field group
++	index = strings.LastIndex(s, fieldSeparator)
++	if index == -1 {
++		return NilObjMetadata, fmt.Errorf("unable to parse stored object metadata: %s", s)
++	}
++	group := s[index+1:]
++	// Finally, second field name. Name may contain colon transcoded as double underscore.
++	name := s[:index]
++	name = strings.ReplaceAll(name, colonTranscoded, ":")
++	// Check that there are no extra fields by search for fieldSeparator.
++	if strings.Contains(name, fieldSeparator) {
++		return NilObjMetadata, fmt.Errorf("too many fields within: %s", s)
++	}
++	// Create the ObjMetadata object from the four parsed fields.
++	id := ObjMetadata{
++		Namespace: namespace,
++		Name:      name,
++		GroupKind: schema.GroupKind{
++			Group: group,
++			Kind:  kind,
++		},
++	}
++	return id, nil
++}
++
++// Equals compares two ObjMetadata and returns true if they are equal. This does
++// not contain any special treatment for the extensions API group.
++func (o *ObjMetadata) Equals(other *ObjMetadata) bool {
++	if other == nil {
++		return false
++	}
++	return *o == *other
++}
++
++// String create a string version of the ObjMetadata struct. For RBAC resources,
++// the "name" field transcodes ":" into double underscore for valid storing
++// as the label of a ConfigMap.
++func (o ObjMetadata) String() string {
++	name := o.Name
++	if _, exists := RBACGroupKind[o.GroupKind]; exists {
++		name = strings.ReplaceAll(name, ":", colonTranscoded)
++	}
++	return fmt.Sprintf("%s%s%s%s%s%s%s",
++		o.Namespace, fieldSeparator,
++		name, fieldSeparator,
++		o.GroupKind.Group, fieldSeparator,
++		o.GroupKind.Kind)
++}
+diff --git a/pkg/cache/references.go b/pkg/cache/references.go
+index 2189836..e493e08 100644
+--- a/pkg/cache/references.go
++++ b/pkg/cache/references.go
+@@ -15,7 +15,16 @@ import (
+ 
+ // mightHaveInferredOwner returns true of given resource might have inferred owners
+ func mightHaveInferredOwner(r *Resource) bool {
+-	return r.Ref.GroupVersionKind().Group == "" && r.Ref.Kind == kube.PersistentVolumeClaimKind
++	if r.Ref.GroupVersionKind().Group == "" && r.Ref.Kind == kube.PersistentVolumeClaimKind {
++		return true
++	}
++
++	// Kustomization has an inferred owner => Source
++	if r.Ref.GroupVersionKind().Group == "kustomize.toolkit.fluxcd.io" && r.Ref.Kind == "Kustomization" {
++		return true
++	}
++
++	return false
+ }
+ 
+ func (c *clusterCache) resolveResourceReferences(un *unstructured.Unstructured) ([]metav1.OwnerReference, func(kube.ResourceKey) bool) {
+@@ -25,6 +34,31 @@ func (c *clusterCache) resolveResourceReferences(un *unstructured.Unstructured)
+ 
+ 	switch {
+ 
++	// Special case for Kustomization
++	/*
++		case un.GroupVersionKind().Group == "kustomize.toolkit.fluxcd.io" && un.GetKind() == "Kustomization":
++			if entries, found, err := unstructured.NestedSlice(un.Object, "status", "inventory", "entries"); found && err == nil {
++				isInferredParentOf = func(key kube.ResourceKey) bool {
++					for _, e := range entries {
++						entry := e.(map[string]interface{})
++						id := entry["id"].(string)
++						// do not use: v := entry("v")
++						idMetadata, err := ParseObjMetadata(id)
++						if err == nil {
++							keyMetadata := ObjMetadata{
++								Namespace: key.Namespace,
++								Name:      key.Name,
++								GroupKind: key.GroupKind(),
++							}
++							if idMetadata.Equals(&keyMetadata) {
++								return true
++							}
++						}
++					}
++					return false
++				}
++			}*/
++
+ 	// Special case for endpoint. Remove after https://github.com/kubernetes/kubernetes/issues/28483 is fixed
+ 	case gvk.Group == "" && gvk.Kind == kube.EndpointsKind && len(un.GetOwnerReferences()) == 0:
+ 		ownerRefs = append(ownerRefs, metav1.OwnerReference{
+@@ -55,6 +89,28 @@ func (c *clusterCache) resolveResourceReferences(un *unstructured.Unstructured)
+ 		} else {
+ 			isInferredParentOf = refs
+ 		}
++
++	default:
++		if len(un.GetOwnerReferences()) == 0 {
++			labels := un.GetLabels()
++			// Kustomization
++			if labels["kustomize.toolkit.fluxcd.io/name"] != "" {
++				ownerRefs = append(ownerRefs, metav1.OwnerReference{
++					Name:       labels["kustomize.toolkit.fluxcd.io/name"],
++					Kind:       "Kustomization",
++					APIVersion: "kustomize.toolkit.fluxcd.io/v1",
++				})
++			}
++			// HelmRelease
++			if labels["helm.toolkit.fluxcd.io/name"] != "" {
++				ownerRefs = append(ownerRefs, metav1.OwnerReference{
++					Name:       labels["helm.toolkit.fluxcd.io/name"],
++					Kind:       "HelmRelease",
++					APIVersion: "helm.toolkit.fluxcd.io/v2beta2",
++				})
++			}
++		}
++
+ 	}
+ 
+ 	return ownerRefs, isInferredParentOf
+diff --git a/pkg/cache/resource_test.go b/pkg/cache/resource_test.go
+index 0562cc6..0ae3635 100644
+--- a/pkg/cache/resource_test.go
++++ b/pkg/cache/resource_test.go
+@@ -78,3 +78,93 @@ type: kubernetes.io/service-account-token
+ 
+ 	assert.True(t, serviceAccount.isParentOf(tokenSecret))
+ }
++
++func TestIsGitRepoParentOfKS(t *testing.T) {
++	gitRepo := c.newResource(strToUnstructured(`
++apiVersion: source.toolkit.fluxcd.io/v1
++kind: GitRepository
++metadata:
++  name: podinfo
++  namespace: dev
++  annotations:
++    inferred-parent-of: podinfo
++spec:
++  interval: 1m0s
++  ref:
++    branch: master
++  url: https://github.com/stefanprodan/podinfo
++`))
++	ks := c.newResource(strToUnstructured(`
++apiVersion: kustomize.toolkit.fluxcd.io/v1
++kind: Kustomization
++metadata:
++  name: podinfo
++  namespace: dev
++spec:
++  interval: 1m0s
++  path: ./deploy/overlays/dev
++  prune: true
++  sourceRef:
++    kind: GitRepository
++    name: podinfo
++`))
++
++	assert.True(t, gitRepo.isParentOf(ks))
++}
++
++func TestKSIsParentOfInventory(t *testing.T) {
++	ks := c.newResource(strToUnstructured(`
++apiVersion: kustomize.toolkit.fluxcd.io/v1
++kind: Kustomization
++metadata:
++  name: podinfo
++  namespace: dev
++spec:
++  interval: 1m0s
++  path: ./deploy/overlays/dev
++  prune: true
++  sourceRef:
++    kind: GitRepository
++    name: podinfo
++status:
++  inventory:
++    entries:
++      - id: _dev__Namespace
++        v: v1
++      - id: dev_redis-config-bd2fcfgt6k__ConfigMap
++        v: v1
++      - id: dev_backend__Service
++        v: v1
++`))
++	svc := c.newResource(strToUnstructured(`
++apiVersion: v1
++kind: Service
++metadata:
++  name: backend
++  namespace: dev
++  labels:
++    kustomize.toolkit.fluxcd.io/name: podinfo
++    kustomize.toolkit.fluxcd.io/namespace: dev
++spec:
++  clusterIP: 10.104.106.241
++  clusterIPs:
++  - 10.104.106.241
++  ipFamilies:
++  - IPv4
++  ipFamilyPolicy: SingleStack
++  ports:
++  - name: http
++    port: 9898
++    protocol: TCP
++    targetPort: http
++  - name: grpc
++    port: 9999
++    protocol: TCP
++    targetPort: grpc
++  selector:
++    app: backend
++  sessionAffinity: None
++  type: ClusterIP
++`))
++	assert.True(t, ks.isParentOf(svc))
++}

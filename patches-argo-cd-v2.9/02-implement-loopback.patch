@@ -87,7 +87,7 @@ index 000000000..f795c6a75
 +	var hl *unstructured.Unstructured
 +	hl, err = m.kubectl.GetResource(context.TODO(), config, schema.GroupVersionKind{
 +		Group:   "helm.toolkit.fluxcd.io",
-+		Version: "v2beta1",
++		Version: "v2beta2",
 +		Kind:    "HelmRelease",
 +	}, app.Name, app.Spec.Destination.Namespace)
 +	if err != nil {

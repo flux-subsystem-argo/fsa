@@ -78,7 +78,7 @@ index 7041569a2..65ccf8782 100644
 +
  	release := map[string]interface{}{}
  	releaseTemplate := []byte(`
- apiVersion: helm.toolkit.fluxcd.io/v2beta1
+ apiVersion: helm.toolkit.fluxcd.io/v2beta2
 @@ -125,9 +134,17 @@ spec:
  }
  

@@ -81,7 +81,7 @@ index f795c6a75..54bb28e4f 100644
 +	)
  	hl, err = m.kubectl.GetResource(context.TODO(), config, schema.GroupVersionKind{
  		Group:   "helm.toolkit.fluxcd.io",
- 		Version: "v2beta1",
+ 		Version: "v2beta2",
  		Kind:    "HelmRelease",
  	}, app.Name, app.Spec.Destination.Namespace)
 +
@@ -317,7 +317,7 @@ index 000000000..7041569a2
 +
 +	release := map[string]interface{}{}
 +	releaseTemplate := []byte(`
-+apiVersion: helm.toolkit.fluxcd.io/v2beta1
++apiVersion: helm.toolkit.fluxcd.io/v2beta2
 +kind: HelmRelease
 +metadata:
 +  name: undefined

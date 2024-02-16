@@ -36,7 +36,7 @@ index 18f41430d..28cd571cc 100644
 +	},
 +	HelmRelease: {
 +		Group:   "helm.toolkit.fluxcd.io",
-+		Version: "v2beta1",
++		Version: "v2beta2",
 +		Kind:    "HelmRelease",
 +	},
 +	HelmRepository: {
@@ -70,7 +70,7 @@ index 18f41430d..28cd571cc 100644
  	)
 -	hl, err = m.kubectl.GetResource(context.TODO(), config, schema.GroupVersionKind{
 -		Group:   "helm.toolkit.fluxcd.io",
--		Version: "v2beta1",
+-		Version: "v2beta2",
 -		Kind:    "HelmRelease",
 -	}, app.Name, app.Spec.Destination.Namespace)
 +	hl, err = m.kubectl.GetResource(context.TODO(), config, supportedKinds[HelmRelease], app.Name, app.Spec.Destination.Namespace)
