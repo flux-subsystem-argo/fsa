@@ -40,7 +40,7 @@ index 40e2f9a5f..e711182b3 100644
  		// Prevent applying local manifests for now when signature verification is enabled
 diff --git a/controller/state_fsa.go b/controller/state_fsa.go
 new file mode 100644
-index 000000000..f795c6a75
+index 000000000..0892309d2
 --- /dev/null
 +++ b/controller/state_fsa.go
 @@ -0,0 +1,139 @@

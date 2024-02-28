@@ -9,7 +9,7 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  2 files changed, 91 insertions(+), 5 deletions(-)
 
 diff --git a/controller/state_fsa.go b/controller/state_fsa.go
-index 54bb28e4f..18f41430d 100644
+index ae5187507..07087f033 100644
 --- a/controller/state_fsa.go
 +++ b/controller/state_fsa.go
 @@ -2,11 +2,12 @@ package controller
@@ -45,7 +45,7 @@ index 54bb28e4f..18f41430d 100644
  					}, sourceName, sourceNS)
  					if err != nil {
 diff --git a/controller/sync_fsa.go b/controller/sync_fsa.go
-index 7041569a2..65ccf8782 100644
+index 40188e00e..4689b2f98 100644
 --- a/controller/sync_fsa.go
 +++ b/controller/sync_fsa.go
 @@ -36,13 +36,14 @@ func generateFluxHelmAndSource(app *appv1.Application) (*unstructured.Unstructur

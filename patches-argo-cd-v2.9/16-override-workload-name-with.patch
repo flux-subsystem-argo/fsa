@@ -9,7 +9,7 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  2 files changed, 28 insertions(+), 4 deletions(-)
 
 diff --git a/controller/state_fsa.go b/controller/state_fsa.go
-index 28cd571cc..33a813cc8 100644
+index 9e1c36e2f..e3aab0778 100644
 --- a/controller/state_fsa.go
 +++ b/controller/state_fsa.go
 @@ -87,6 +87,30 @@ var supportedKinds = map[fluxKind]schema.GroupVersionKind{
@@ -62,7 +62,7 @@ index 28cd571cc..33a813cc8 100644
  	if err != nil {
  		// err might be a "not found" one
 diff --git a/controller/sync_fsa.go b/controller/sync_fsa.go
-index e4b0f3ca6..9c4aaca6c 100644
+index d9e1da5c8..b4b71f98d 100644
 --- a/controller/sync_fsa.go
 +++ b/controller/sync_fsa.go
 @@ -95,7 +95,7 @@ spec:

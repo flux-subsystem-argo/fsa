@@ -12,7 +12,7 @@ Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
  create mode 100644 controller/sync_fsa_test.go
 
 diff --git a/controller/state_fsa.go b/controller/state_fsa.go
-index f795c6a75..54bb28e4f 100644
+index 0892309d2..ae5187507 100644
 --- a/controller/state_fsa.go
 +++ b/controller/state_fsa.go
 @@ -6,6 +6,7 @@ import (
@@ -253,7 +253,7 @@ index f795c6a75..54bb28e4f 100644
  }
 diff --git a/controller/sync_fsa.go b/controller/sync_fsa.go
 new file mode 100644
-index 000000000..7041569a2
+index 000000000..40188e00e
 --- /dev/null
 +++ b/controller/sync_fsa.go
 @@ -0,0 +1,193 @@

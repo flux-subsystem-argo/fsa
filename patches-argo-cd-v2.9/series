@@ -21,3 +21,4 @@
 20-add-health-message-for-helm.patch
 21-fix-health-message-in.patch
 22-fix-flux-2.2-oci.patch
+23-allow-overriding-flux-object.patch
