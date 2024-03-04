@@ -1,0 +1,346 @@
+allow overriding flux object spec
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ controller/state_fsa.go         |    5 ++
+ controller/sync_fsa.go          |   75 ++++++++++++++++++++++++++++++++++-
+ controller/sync_fsa_override.go |   67 +++++++++++++++++++++++++++++++
+ controller/sync_fsa_test.go     |   83 ++++++++++++++++++++++++++++++++++++---
+ 4 files changed, 220 insertions(+), 10 deletions(-)
+ create mode 100644 controller/sync_fsa_override.go
+
+diff --git a/controller/state_fsa.go b/controller/state_fsa.go
+index e3aab0778..ffa821a9e 100644
+--- a/controller/state_fsa.go
++++ b/controller/state_fsa.go
+@@ -87,7 +87,10 @@ var supportedKinds = map[fluxKind]schema.GroupVersionKind{
+ 	},
+ }
+ 
+-const FlamingoWorkloadNameLabel = "flamingo/workload-name"
++const (
++	FlamingoWorkloadNameLabel = "flamingo/workload-name"
++	FlamingoGeneratedLabel    = "flamingo/generated"
++)
+ 
+ func getWorkloadName(app *v1alpha1.Application) string {
+ 	// if app is nil, return empty string
+diff --git a/controller/sync_fsa.go b/controller/sync_fsa.go
+index b4b71f98d..45deaff9d 100644
+--- a/controller/sync_fsa.go
++++ b/controller/sync_fsa.go
+@@ -30,6 +30,29 @@ func mergeHelmParamsAndValues(app appv1.Application) (map[string]interface{}, er
+ }
+ 
+ func generateFluxHelmAndSource(app *appv1.Application) (*unstructured.Unstructured, *unstructured.Unstructured, error) {
++	obj, src, err := generateFluxHelmAndHelmRepository(app)
++	if err != nil {
++		return obj, src, err
++	}
++
++	if err := overrideSpec(app, FlamingoHelmReleaseOverride, obj); err != nil {
++		return obj, src, err
++	}
++	if err := overrideSpec(app, FlamingoHelmRepositoryOverride, src); err != nil {
++		return obj, src, err
++	}
++
++	if err := replaceSpec(app, FlamingoHelmReleaseReplace, obj); err != nil {
++		return obj, src, err
++	}
++	if err := replaceSpec(app, FlamingoHelmRepositoryReplace, src); err != nil {
++		return obj, src, err
++	}
++
++	return obj, src, nil
++}
++
++func generateFluxHelmAndHelmRepository(app *appv1.Application) (*unstructured.Unstructured, *unstructured.Unstructured, error) {
+ 	mergedValues, err := mergeHelmParamsAndValues(*app)
+ 	if err != nil {
+ 		return nil, nil, err
+@@ -39,6 +62,8 @@ func generateFluxHelmAndSource(app *appv1.Application) (*unstructured.Unstructur
+ apiVersion: source.toolkit.fluxcd.io/v1beta2
+ kind: HelmRepository
+ metadata:
++  labels:
++    flamingo/generated: "true"
+   name: undefined
+   namespace: undefined
+ spec:
+@@ -70,6 +95,8 @@ spec:
+ apiVersion: helm.toolkit.fluxcd.io/v2beta2
+ kind: HelmRelease
+ metadata:
++  labels:
++    flamingo/generated: "true"
+   name: undefined
+   namespace: undefined
+ spec:
+@@ -135,9 +162,45 @@ spec:
+ 
+ func generateFluxKustomizationAndSource(app *appv1.Application) (*unstructured.Unstructured, *unstructured.Unstructured, error) {
+ 	if strings.HasPrefix(app.Spec.Source.RepoURL, "oci://") {
+-		return generateFluxKustomizationAndOCISource(app)
++		obj, src, err := generateFluxKustomizationAndOCISource(app)
++		if err != nil {
++			return obj, src, err
++		}
++		if err := overrideSpec(app, FlamingoKustomizeOverride, obj); err != nil {
++			return obj, src, err
++		}
++		if err := overrideSpec(app, FlamingoOCIRepositoryOverride, src); err != nil {
++			return obj, src, err
++		}
++
++		if err := replaceSpec(app, FlamingoKustomizeReplace, obj); err != nil {
++			return obj, src, err
++		}
++		if err := replaceSpec(app, FlamingoOCIRepositoryReplace, src); err != nil {
++			return obj, src, err
++		}
++
++		return obj, src, nil
+ 	} else {
+-		return generateFluxKustomizationAndGitSource(app)
++		obj, src, err := generateFluxKustomizationAndGitSource(app)
++		if err != nil {
++			return obj, src, err
++		}
++		if err := overrideSpec(app, FlamingoKustomizeOverride, obj); err != nil {
++			return obj, src, err
++		}
++		if err := overrideSpec(app, FlamingoGitRepositoryOverride, src); err != nil {
++			return obj, src, err
++		}
++
++		if err := replaceSpec(app, FlamingoKustomizeReplace, obj); err != nil {
++			return obj, src, err
++		}
++		if err := replaceSpec(app, FlamingoGitRepositoryReplace, src); err != nil {
++			return obj, src, err
++		}
++
++		return obj, src, nil
+ 	}
+ }
+ 
+@@ -147,6 +210,8 @@ func generateFluxKustomizationAndGitSource(app *appv1.Application) (*unstructure
+ apiVersion: source.toolkit.fluxcd.io/v1beta2
+ kind: GitRepository
+ metadata:
++  labels:
++    flamingo/generated: "true"
+   name: undefined
+   namespace: undefined
+ spec:
+@@ -175,6 +240,8 @@ spec:
+ apiVersion: kustomize.toolkit.fluxcd.io/v1
+ kind: Kustomization
+ metadata:
++  labels:
++    flamingo/generated: "true"
+   name: undefined
+   namespace: undefined
+ spec:
+@@ -215,6 +282,8 @@ func generateFluxKustomizationAndOCISource(app *appv1.Application) (*unstructure
+ apiVersion: source.toolkit.fluxcd.io/v1beta2
+ kind: OCIRepository
+ metadata:
++  labels:
++    flamingo/generated: "true"
+   name: undefined
+   namespace: undefined
+ spec:
+@@ -243,6 +312,8 @@ spec:
+ apiVersion: kustomize.toolkit.fluxcd.io/v1
+ kind: Kustomization
+ metadata:
++  labels:
++    flamingo/generated: "true"
+   name: undefined
+   namespace: undefined
+ spec:
+diff --git a/controller/sync_fsa_override.go b/controller/sync_fsa_override.go
+new file mode 100644
+index 000000000..b093e7ba4
+--- /dev/null
++++ b/controller/sync_fsa_override.go
+@@ -0,0 +1,67 @@
++package controller
++
++import (
++	"github.com/imdario/mergo"
++	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
++	"sigs.k8s.io/yaml"
++
++	appv1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
++)
++
++const (
++	FlamingoKustomizeOverride      = "flamingo/kustomize-override"
++	FlamingoHelmReleaseOverride    = "flamingo/helmrelease-override"
++	FlamingoHelmRepositoryOverride = "flamingo/helmrepository-override"
++	FlamingoGitRepositoryOverride  = "flamingo/gitrepository-override"
++	FlamingoOCIRepositoryOverride  = "flamingo/ocirepository-override"
++
++	FlamingoKustomizeReplace      = "flamingo/kustomize-replace"
++	FlamingoHelmReleaseReplace    = "flamingo/helmrelease-replace"
++	FlamingoHelmRepositoryReplace = "flamingo/helmrepository-replace"
++	FlamingoGitRepositoryReplace  = "flamingo/gitrepository-replace"
++	FlamingoOCIRepositoryReplace  = "flamingo/ocirepository-replace"
++)
++
++// overrideSpec overrides the spec of the given unstructured object with the
++// value of the given annotation key in the application.
++func overrideSpec(app *appv1.Application, overrideKey string, u *unstructured.Unstructured) error {
++	if app.Annotations == nil {
++		return nil
++	}
++
++	object := u.Object
++	if overrideSpec, ok := app.Annotations[overrideKey]; ok {
++		spec := map[string]interface{}{}
++		if err := yaml.Unmarshal([]byte(overrideSpec), &spec); err == nil {
++			if err := mergo.Merge(&object, spec, mergo.WithOverride); err != nil {
++				return err
++			}
++		} else {
++			return err
++		}
++	}
++
++	u.Object = object
++	return nil
++}
++
++// replaceSpec replaces the spec of the given unstructured object with the
++// value of the given annotation key in the application.
++func replaceSpec(app *appv1.Application, replaceKey string, u *unstructured.Unstructured) error {
++	if app.Annotations == nil {
++		return nil
++	}
++
++	object := u.Object
++	if replaceSpec, ok := app.Annotations[replaceKey]; ok {
++		spec := map[string]interface{}{}
++		if err := yaml.Unmarshal([]byte(replaceSpec), &spec); err == nil {
++			object["spec"] = spec["spec"]
++		} else {
++			return err
++		}
++	}
++
++	u.Object = object
++	return nil
++}
+diff --git a/controller/sync_fsa_test.go b/controller/sync_fsa_test.go
+index 9ed03c712..2cd5a7976 100644
+--- a/controller/sync_fsa_test.go
++++ b/controller/sync_fsa_test.go
+@@ -1,6 +1,7 @@
+ package controller
+ 
+ import (
++	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+ 	"testing"
+ 
+ 	appv1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
+@@ -10,7 +11,7 @@ import (
+ func TestMergeValues(t *testing.T) {
+ 	app := appv1.Application{
+ 		Spec: appv1.ApplicationSpec{
+-			Source: appv1.ApplicationSource{
++			Source: &appv1.ApplicationSource{
+ 				Helm: &appv1.ApplicationSourceHelm{
+ 					Parameters: []appv1.HelmParameter{
+ 						{
+@@ -36,12 +37,80 @@ ui:
+ 	assert.Equal(t, expected, actual, "should equal")
+ }
+ 
+-/*
+-func TestGenerateFluxHelmAndSource(t *testing.T) {
+-	generateFluxHelmAndSource(app)
++func TestGenerateFluxHelmAndSourceWithSpecOverride(t *testing.T) {
++	app := &appv1.Application{
++		ObjectMeta: v1.ObjectMeta{
++			Name: "name",
++			Annotations: map[string]string{
++				FlamingoKustomizeOverride: `spec:
++  interval: 5m0s
++  wait: false
++`,
++			},
++		},
++		Spec: appv1.ApplicationSpec{
++			Source: &appv1.ApplicationSource{
++				Kustomize: &appv1.ApplicationSourceKustomize{},
++			},
++		},
++	}
++
++	ks, src, err := generateFluxKustomizationAndGitSource(app)
++	assert.NoError(t, err, "should not have error")
++	assert.NotNil(t, ks, "should not be nil")
++	assert.NotNil(t, src, "should not be nil")
++	assert.Equal(t, "Kustomization", ks.GetKind(), "should equal")
++	assert.Equal(t, "name", ks.GetName(), "should equal")
++	assert.Equal(t, "10m", ks.Object["spec"].(map[string]interface{})["interval"], "should equal")
++	assert.Equal(t, true, ks.Object["spec"].(map[string]interface{})["wait"], "should equal")
++
++	err = overrideSpec(app, FlamingoKustomizeOverride, ks)
++	assert.NoError(t, err, "should not have error")
++	assert.NotNil(t, ks, "should not be nil")
++	assert.Equal(t, "Kustomization", ks.GetKind(), "should equal")
++	assert.Equal(t, "name", ks.GetName(), "should equal")
++	assert.Equal(t, "5m0s", ks.Object["spec"].(map[string]interface{})["interval"], "should equal")
++	assert.Equal(t, false, ks.Object["spec"].(map[string]interface{})["wait"], "should equal")
++
++	assert.Equal(t, "GitRepository", src.GetKind(), "should equal")
+ }
+ 
+-func TestGenerateFluxKustomizationAndSource(t *testing.T) {
+-	generateFluxKustomizationAndSource(app)
++func TestGenerateFluxHelmAndSourceWithSpecReplace(t *testing.T) {
++	app := &appv1.Application{
++		ObjectMeta: v1.ObjectMeta{
++			Name: "name",
++			Annotations: map[string]string{
++				FlamingoKustomizeReplace: `spec:
++  interval: 5m0s
++  wait: false
++`,
++			},
++		},
++		Spec: appv1.ApplicationSpec{
++			Source: &appv1.ApplicationSource{
++				Kustomize: &appv1.ApplicationSourceKustomize{},
++			},
++		},
++	}
++
++	ks, src, err := generateFluxKustomizationAndGitSource(app)
++	assert.NoError(t, err, "should not have error")
++	assert.NotNil(t, ks, "should not be nil")
++	assert.NotNil(t, src, "should not be nil")
++	assert.Equal(t, "Kustomization", ks.GetKind(), "should equal")
++	assert.Equal(t, "name", ks.GetName(), "should equal")
++	assert.Equal(t, "10m", ks.Object["spec"].(map[string]interface{})["interval"], "should equal")
++	assert.Equal(t, true, ks.Object["spec"].(map[string]interface{})["wait"], "should equal")
++	assert.Equal(t, true, ks.Object["spec"].(map[string]interface{})["prune"], "should equal")
++
++	err = replaceSpec(app, FlamingoKustomizeReplace, ks)
++	assert.NoError(t, err, "should not have error")
++	assert.NotNil(t, ks, "should not be nil")
++	assert.Equal(t, "Kustomization", ks.GetKind(), "should equal")
++	assert.Equal(t, "name", ks.GetName(), "should equal")
++	assert.Equal(t, "5m0s", ks.Object["spec"].(map[string]interface{})["interval"], "should equal")
++	assert.Equal(t, false, ks.Object["spec"].(map[string]interface{})["wait"], "should equal")
++	assert.Equal(t, nil, ks.Object["spec"].(map[string]interface{})["prune"], "should equal")
++
++	assert.Equal(t, "GitRepository", src.GetKind(), "should equal")
+ }
+-*/

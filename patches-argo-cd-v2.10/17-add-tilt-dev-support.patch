@@ -1,0 +1,392 @@
+add tilt dev support
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ Makefile               |   23 ++--
+ Tiltfile               |   14 ++
+ argocd-server-dev.yaml |  315 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 342 insertions(+), 10 deletions(-)
+ create mode 100644 Tiltfile
+ create mode 100644 argocd-server-dev.yaml
+
+diff --git a/Makefile b/Makefile
+index f639e3498..3532370fa 100644
+--- a/Makefile
++++ b/Makefile
+@@ -291,20 +291,23 @@ build-ui:
+ 
+ .PHONY: image
+ ifeq ($(DEV_IMAGE), true)
++DEV_IMAGE_REF?=
+ # The "dev" image builds the binaries from the users desktop environment (instead of in Docker)
+ # which speeds up builds. Dockerfile.dev needs to be copied into dist to perform the build, since
+ # the dist directory is under .dockerignore.
+ IMAGE_TAG="dev-$(shell git describe --always --dirty)"
+-image: build-ui
+-	DOCKER_BUILDKIT=1 docker build --platform=$(TARGET_ARCH) -t argocd-base --target argocd-base .
+-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" go build -v -ldflags '${LDFLAGS}' -o ${DIST_DIR}/argocd ./cmd
+-	ln -sfn ${DIST_DIR}/argocd ${DIST_DIR}/argocd-server
+-	ln -sfn ${DIST_DIR}/argocd ${DIST_DIR}/argocd-application-controller
+-	ln -sfn ${DIST_DIR}/argocd ${DIST_DIR}/argocd-repo-server
+-	ln -sfn ${DIST_DIR}/argocd ${DIST_DIR}/argocd-cmp-server
+-	ln -sfn ${DIST_DIR}/argocd ${DIST_DIR}/argocd-dex
+-	cp Dockerfile.dev dist
+-	DOCKER_BUILDKIT=1 docker build --platform=$(TARGET_ARCH) -t $(IMAGE_PREFIX)argocd:$(IMAGE_TAG) -f dist/Dockerfile.dev dist
++image: # build-ui
++	# DOCKER_BUILDKIT=1 docker build --platform=$(TARGET_ARCH) -t argocd-base --target argocd-base .
++	# CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" go build -v -ldflags '${LDFLAGS}' -o ${DIST_DIR}/argocd ./cmd
++	# ln -sfn ${DIST_DIR}/argocd ${DIST_DIR}/argocd-server
++	# ln -sfn ${DIST_DIR}/argocd ${DIST_DIR}/argocd-application-controller
++	# ln -sfn ${DIST_DIR}/argocd ${DIST_DIR}/argocd-repo-server
++	# ln -sfn ${DIST_DIR}/argocd ${DIST_DIR}/argocd-cmp-server
++	# ln -sfn ${DIST_DIR}/argocd ${DIST_DIR}/argocd-dex
++	# cp Dockerfile.dev dist
++	# DOCKER_BUILDKIT=1 docker build --platform=$(TARGET_ARCH) -t $(IMAGE_PREFIX)argocd:$(IMAGE_TAG) -f dist/Dockerfile.dev dist
++	DOCKER_BUILDKIT=1 docker build -t $(DEV_IMAGE_REF) --platform=$(TARGET_ARCH) .
++	docker push $(DEV_IMAGE_REF)
+ else
+ image:
+ 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE_PREFIX)argocd:$(IMAGE_TAG) --platform=$(TARGET_ARCH) .
+diff --git a/Tiltfile b/Tiltfile
+new file mode 100644
+index 000000000..05e2ffaf6
+--- /dev/null
++++ b/Tiltfile
+@@ -0,0 +1,14 @@
++k8s_yaml('argocd-server-dev.yaml')
++
++custom_build(
++  'ghcr.io/flux-subsystem-argo/fsa/argocd',
++  'DEV_IMAGE=true DEV_IMAGE_REF=$EXPECTED_REF make image',
++  ['.'],
++)
++
++# Configure the 'argocd-server' deployment in the 'argocd' namespace
++k8s_resource(workload='argocd-server', port_forwards=8080)
++
++# EXPECTED_REF=ghcr.io/flux-subsystem-argo/fsa/argocd:tilt-build-1693653983
++# EXPECTED_IMAGE=flux-subsystem-argo/fsa/argocd
++# EXPECTED_TAG=tilt-build-1693653983
+diff --git a/argocd-server-dev.yaml b/argocd-server-dev.yaml
+new file mode 100644
+index 000000000..425837529
+--- /dev/null
++++ b/argocd-server-dev.yaml
+@@ -0,0 +1,315 @@
++---
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  labels:
++    app.kubernetes.io/component: server
++    app.kubernetes.io/name: argocd-server
++    app.kubernetes.io/part-of: argocd
++  name: argocd-server
++  namespace: argocd
++spec:
++  selector:
++    matchLabels:
++      app.kubernetes.io/name: argocd-server
++  template:
++    metadata:
++      labels:
++        app.kubernetes.io/name: argocd-server
++    spec:
++      affinity:
++        podAntiAffinity:
++          preferredDuringSchedulingIgnoredDuringExecution:
++            - podAffinityTerm:
++                labelSelector:
++                  matchLabels:
++                    app.kubernetes.io/name: argocd-server
++                topologyKey: kubernetes.io/hostname
++              weight: 100
++            - podAffinityTerm:
++                labelSelector:
++                  matchLabels:
++                    app.kubernetes.io/part-of: argocd
++                topologyKey: kubernetes.io/hostname
++              weight: 5
++      containers:
++        - args:
++            - /usr/local/bin/argocd-server
++          env:
++            - name: ARGOCD_SERVER_INSECURE
++              valueFrom:
++                configMapKeyRef:
++                  key: server.insecure
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_BASEHREF
++              valueFrom:
++                configMapKeyRef:
++                  key: server.basehref
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_ROOTPATH
++              valueFrom:
++                configMapKeyRef:
++                  key: server.rootpath
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_LOGFORMAT
++              valueFrom:
++                configMapKeyRef:
++                  key: server.log.format
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_LOG_LEVEL
++              valueFrom:
++                configMapKeyRef:
++                  key: server.log.level
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_REPO_SERVER
++              valueFrom:
++                configMapKeyRef:
++                  key: repo.server
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_DEX_SERVER
++              valueFrom:
++                configMapKeyRef:
++                  key: server.dex.server
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_DISABLE_AUTH
++              valueFrom:
++                configMapKeyRef:
++                  key: server.disable.auth
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_ENABLE_GZIP
++              valueFrom:
++                configMapKeyRef:
++                  key: server.enable.gzip
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_REPO_SERVER_TIMEOUT_SECONDS
++              valueFrom:
++                configMapKeyRef:
++                  key: server.repo.server.timeout.seconds
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_X_FRAME_OPTIONS
++              valueFrom:
++                configMapKeyRef:
++                  key: server.x.frame.options
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_CONTENT_SECURITY_POLICY
++              valueFrom:
++                configMapKeyRef:
++                  key: server.content.security.policy
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_REPO_SERVER_PLAINTEXT
++              valueFrom:
++                configMapKeyRef:
++                  key: server.repo.server.plaintext
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_REPO_SERVER_STRICT_TLS
++              valueFrom:
++                configMapKeyRef:
++                  key: server.repo.server.strict.tls
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_DEX_SERVER_PLAINTEXT
++              valueFrom:
++                configMapKeyRef:
++                  key: server.dex.server.plaintext
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_DEX_SERVER_STRICT_TLS
++              valueFrom:
++                configMapKeyRef:
++                  key: server.dex.server.strict.tls
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_TLS_MIN_VERSION
++              valueFrom:
++                configMapKeyRef:
++                  key: server.tls.minversion
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_TLS_MAX_VERSION
++              valueFrom:
++                configMapKeyRef:
++                  key: server.tls.maxversion
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_TLS_CIPHERS
++              valueFrom:
++                configMapKeyRef:
++                  key: server.tls.ciphers
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_CONNECTION_STATUS_CACHE_EXPIRATION
++              valueFrom:
++                configMapKeyRef:
++                  key: server.connection.status.cache.expiration
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_OIDC_CACHE_EXPIRATION
++              valueFrom:
++                configMapKeyRef:
++                  key: server.oidc.cache.expiration
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_LOGIN_ATTEMPTS_EXPIRATION
++              valueFrom:
++                configMapKeyRef:
++                  key: server.login.attempts.expiration
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_STATIC_ASSETS
++              valueFrom:
++                configMapKeyRef:
++                  key: server.staticassets
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_APP_STATE_CACHE_EXPIRATION
++              valueFrom:
++                configMapKeyRef:
++                  key: server.app.state.cache.expiration
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: REDIS_SERVER
++              valueFrom:
++                configMapKeyRef:
++                  key: redis.server
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: REDIS_COMPRESSION
++              valueFrom:
++                configMapKeyRef:
++                  key: redis.compression
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: REDISDB
++              valueFrom:
++                configMapKeyRef:
++                  key: redis.db
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_DEFAULT_CACHE_EXPIRATION
++              valueFrom:
++                configMapKeyRef:
++                  key: server.default.cache.expiration
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_MAX_COOKIE_NUMBER
++              valueFrom:
++                configMapKeyRef:
++                  key: server.http.cookie.maxnumber
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_LISTEN_ADDRESS
++              valueFrom:
++                configMapKeyRef:
++                  key: server.listen.address
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_METRICS_LISTEN_ADDRESS
++              valueFrom:
++                configMapKeyRef:
++                  key: server.metrics.listen.address
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_OTLP_ADDRESS
++              valueFrom:
++                configMapKeyRef:
++                  key: otlp.address
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_APPLICATION_NAMESPACES
++              valueFrom:
++                configMapKeyRef:
++                  key: application.namespaces
++                  name: argocd-cmd-params-cm
++                  optional: true
++            - name: ARGOCD_SERVER_ENABLE_PROXY_EXTENSION
++              valueFrom:
++                configMapKeyRef:
++                  key: server.enable.proxy.extension
++                  name: argocd-cmd-params-cm
++                  optional: true
++          image: ghcr.io/flux-subsystem-argo/fsa/argocd:v2.8.1-fl.16-main-0a0a2f19
++          imagePullPolicy: Always
++          livenessProbe:
++            httpGet:
++              path: /healthz?full=true
++              port: 8080
++            initialDelaySeconds: 3
++            periodSeconds: 30
++            timeoutSeconds: 5
++          name: argocd-server
++          ports:
++            - containerPort: 8080
++            - containerPort: 8083
++          readinessProbe:
++            httpGet:
++              path: /healthz
++              port: 8080
++            initialDelaySeconds: 3
++            periodSeconds: 30
++          securityContext:
++            allowPrivilegeEscalation: false
++            capabilities:
++              drop:
++                - ALL
++            readOnlyRootFilesystem: true
++            runAsNonRoot: true
++            seccompProfile:
++              type: RuntimeDefault
++          volumeMounts:
++            - mountPath: /app/config/ssh
++              name: ssh-known-hosts
++            - mountPath: /app/config/tls
++              name: tls-certs
++            - mountPath: /app/config/server/tls
++              name: argocd-repo-server-tls
++            - mountPath: /app/config/dex/tls
++              name: argocd-dex-server-tls
++            - mountPath: /home/argocd
++              name: plugins-home
++            - mountPath: /tmp
++              name: tmp
++      serviceAccountName: argocd-server
++      volumes:
++        - emptyDir: {}
++          name: plugins-home
++        - emptyDir: {}
++          name: tmp
++        - configMap:
++            name: argocd-ssh-known-hosts-cm
++          name: ssh-known-hosts
++        - configMap:
++            name: argocd-tls-certs-cm
++          name: tls-certs
++        - name: argocd-repo-server-tls
++          secret:
++            items:
++              - key: tls.crt
++                path: tls.crt
++              - key: tls.key
++                path: tls.key
++              - key: ca.crt
++                path: ca.crt
++            optional: true
++            secretName: argocd-repo-server-tls
++        - name: argocd-dex-server-tls
++          secret:
++            items:
++              - key: tls.crt
++                path: tls.crt
++              - key: ca.crt
++                path: ca.crt
++            optional: true
++            secretName: argocd-dex-server-tls

@@ -1,0 +1,210 @@
+implement loopback reconciliation
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ controller/state.go     |   40 ++++++++------
+ controller/state_fsa.go |  139 +++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 162 insertions(+), 17 deletions(-)
+ create mode 100644 controller/state_fsa.go
+
+diff --git a/controller/state.go b/controller/state.go
+index 5121fa68f..3d2e44c7d 100644
+--- a/controller/state.go
++++ b/controller/state.go
+@@ -418,26 +418,32 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *v1
+ 			}
+ 		}
+ 
+-		targetObjs, manifestInfos, err = m.GetRepoObjs(app, sources, appLabelKey, revisions, noCache, noRevisionCache, verifySignature, project)
+-		if err != nil {
+-			targetObjs = make([]*unstructured.Unstructured, 0)
+-			msg := fmt.Sprintf("Failed to load target state: %s", err.Error())
+-			conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: msg, LastTransitionTime: &now})
+-			if firstSeen, ok := m.repoErrorCache.Load(app.Name); ok {
+-				if time.Since(firstSeen.(time.Time)) <= m.repoErrorGracePeriod && !noRevisionCache {
+-					// if first seen is less than grace period and it's not a Level 3 comparison,
+-					// ignore error and short circuit
+-					logCtx.Debugf("Ignoring repo error %v, already encountered error in grace period", err.Error())
++		if isFluxSubsystemEnabled(app) && app.Spec.Source.IsHelm() {
++			targetObjs, conditions, failedToLoadObjs = m.getFluxHelmTargetObjects(app, conditions, now)
++		} else if isFluxSubsystemEnabled(app) && !app.Spec.Source.IsHelm() {
++			targetObjs, conditions, failedToLoadObjs = m.getFluxKustomizeTargetObjects(app, conditions, now)
++		} else {
++			targetObjs, manifestInfos, err = m.GetRepoObjs(app, sources, appLabelKey, revisions, noCache, noRevisionCache, verifySignature, project)
++			if err != nil {
++				targetObjs = make([]*unstructured.Unstructured, 0)
++				msg := fmt.Sprintf("Failed to load target state: %s", err.Error())
++				conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: msg, LastTransitionTime: &now})
++				if firstSeen, ok := m.repoErrorCache.Load(app.Name); ok {
++					if time.Since(firstSeen.(time.Time)) <= m.repoErrorGracePeriod && !noRevisionCache {
++						// if first seen is less than grace period and it's not a Level 3 comparison,
++						// ignore error and short circuit
++						logCtx.Debugf("Ignoring repo error %v, already encountered error in grace period", err.Error())
++						return nil, CompareStateRepoError
++					}
++				} else if !noRevisionCache {
++					logCtx.Debugf("Ignoring repo error %v, new occurrence", err.Error())
++					m.repoErrorCache.Store(app.Name, time.Now())
+ 					return nil, CompareStateRepoError
+ 				}
+-			} else if !noRevisionCache {
+-				logCtx.Debugf("Ignoring repo error %v, new occurrence", err.Error())
+-				m.repoErrorCache.Store(app.Name, time.Now())
+-				return nil, CompareStateRepoError
++				failedToLoadObjs = true
++			} else {
++				m.repoErrorCache.Delete(app.Name)
+ 			}
+-			failedToLoadObjs = true
+-		} else {
+-			m.repoErrorCache.Delete(app.Name)
+ 		}
+ 	} else {
+ 		// Prevent applying local manifests for now when signature verification is enabled
+diff --git a/controller/state_fsa.go b/controller/state_fsa.go
+new file mode 100644
+index 000000000..0892309d2
+--- /dev/null
++++ b/controller/state_fsa.go
+@@ -0,0 +1,139 @@
++package controller
++
++import (
++	"context"
++	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
++	"k8s.io/apimachinery/pkg/apis/meta/v1"
++	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
++	"k8s.io/apimachinery/pkg/runtime/schema"
++)
++
++func isFluxSubsystemEnabled(app *v1alpha1.Application) bool {
++	if app == nil {
++		return false
++	}
++	if app.Spec.SyncPolicy == nil {
++		return false
++	}
++	if app.Spec.SyncPolicy.SyncOptions == nil {
++		return false
++	}
++	if app.Spec.SyncPolicy.SyncOptions.HasOption("FluxSubsystem=true") == false {
++		return false
++	}
++	return true
++}
++
++func (m *appStateManager) getFluxHelmTargetObjects(app *v1alpha1.Application, conditions []v1alpha1.ApplicationCondition, now v1.Time) ([]*unstructured.Unstructured, []v1alpha1.ApplicationCondition, bool) {
++	var (
++		targetObjs       []*unstructured.Unstructured
++		failedToLoadObjs bool
++	)
++
++	cluster, err := m.db.GetCluster(context.TODO(), app.Spec.Destination.Server)
++	if err != nil {
++		targetObjs = make([]*unstructured.Unstructured, 0)
++		conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
++		failedToLoadObjs = true
++	}
++	config := cluster.RESTConfig()
++
++	var hl *unstructured.Unstructured
++	hl, err = m.kubectl.GetResource(context.TODO(), config, schema.GroupVersionKind{
++		Group:   "helm.toolkit.fluxcd.io",
++		Version: "v2beta2",
++		Kind:    "HelmRelease",
++	}, app.Name, app.Spec.Destination.Namespace)
++	if err != nil {
++		targetObjs = make([]*unstructured.Unstructured, 0)
++		conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
++		failedToLoadObjs = true
++	}
++
++	if hl == nil {
++		targetObjs = make([]*unstructured.Unstructured, 0)
++		conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
++		failedToLoadObjs = true
++	} else {
++		var source *unstructured.Unstructured
++		if sourceKind, found, err := unstructured.NestedString(hl.Object, "spec", "chart", "spec", "sourceRef", "kind"); found && err == nil {
++			if sourceName, found, err := unstructured.NestedString(hl.Object, "spec", "chart", "spec", "sourceRef", "name"); found && err == nil {
++				if sourceNS, found, err := unstructured.NestedString(hl.Object, "spec", "chart", "spec", "sourceRef", "namespace"); err == nil {
++					if !found {
++						sourceNS = hl.GetNamespace()
++					}
++					source, err = m.kubectl.GetResource(context.Background(), config, schema.GroupVersionKind{
++						Group:   "source.toolkit.fluxcd.io",
++						Version: "v1beta1",
++						Kind:    sourceKind,
++					}, sourceName, sourceNS)
++				}
++			}
++		}
++		if source != nil {
++			targetObjs = []*unstructured.Unstructured{hl, source}
++		} else {
++			targetObjs = make([]*unstructured.Unstructured, 0)
++			conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
++			failedToLoadObjs = true
++		}
++	}
++	return targetObjs, conditions, failedToLoadObjs
++}
++
++func (m *appStateManager) getFluxKustomizeTargetObjects(app *v1alpha1.Application, conditions []v1alpha1.ApplicationCondition, now v1.Time) ([]*unstructured.Unstructured, []v1alpha1.ApplicationCondition, bool) {
++	var (
++		targetObjs       []*unstructured.Unstructured
++		failedToLoadObjs bool
++	)
++
++	cluster, err := m.db.GetCluster(context.TODO(), app.Spec.Destination.Server)
++	if err != nil {
++		targetObjs = make([]*unstructured.Unstructured, 0)
++		conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
++		failedToLoadObjs = true
++	}
++	config := cluster.RESTConfig()
++
++	var ks *unstructured.Unstructured
++	ks, err = m.kubectl.GetResource(context.TODO(), config, schema.GroupVersionKind{
++		Group:   "kustomize.toolkit.fluxcd.io",
++		Version: "v1beta2",
++		Kind:    "Kustomization",
++	}, app.Name, app.Spec.Destination.Namespace)
++	if err != nil {
++		targetObjs = make([]*unstructured.Unstructured, 0)
++		conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
++		failedToLoadObjs = true
++	}
++
++	if ks == nil {
++		targetObjs = make([]*unstructured.Unstructured, 0)
++		conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
++		failedToLoadObjs = true
++	} else {
++		var source *unstructured.Unstructured
++		if sourceKind, found, err := unstructured.NestedString(ks.Object, "spec", "sourceRef", "kind"); found && err == nil {
++			if sourceName, found, err := unstructured.NestedString(ks.Object, "spec", "sourceRef", "name"); found && err == nil {
++				if sourceNS, found, err := unstructured.NestedString(ks.Object, "spec", "sourceRef", "namespace"); err == nil {
++					if !found {
++						sourceNS = ks.GetNamespace()
++					}
++					source, err = m.kubectl.GetResource(context.Background(), config, schema.GroupVersionKind{
++						Group:   "source.toolkit.fluxcd.io",
++						Version: "v1beta1",
++						Kind:    sourceKind,
++					}, sourceName, sourceNS)
++				}
++			}
++		}
++		if source != nil {
++			targetObjs = []*unstructured.Unstructured{ks, source}
++		} else {
++			targetObjs = make([]*unstructured.Unstructured, 0)
++			conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
++			failedToLoadObjs = true
++		}
++	}
++	return targetObjs, conditions, failedToLoadObjs
++}

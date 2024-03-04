@@ -1,0 +1,62 @@
+build with local gitops engine
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ .gitignore |    2 ++
+ Dockerfile |    9 +++++++++
+ go.mod     |    1 +
+ 3 files changed, 12 insertions(+)
+
+diff --git a/.gitignore b/.gitignore
+index ab17deb0d..c28c77a6a 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -25,3 +25,5 @@ cmd/argocd/argocd
+ cmd/argocd-application-controller/argocd-application-controller
+ cmd/argocd-repo-server/argocd-repo-server
+ cmd/argocd-server/argocd-server
++
++gitops-engine/
+diff --git a/Dockerfile b/Dockerfile
+index 2c31b5077..5e6bb92f0 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -105,7 +105,9 @@ FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.21.3@sha256:02d7116222
+ 
+ WORKDIR /go/src/github.com/argoproj/argo-cd
+ 
++COPY ./gitops-engine ./gitops-engine
+ COPY go.* ./
++
+ RUN go mod download
+ 
+ # Perform the build
+@@ -130,9 +132,16 @@ RUN GIT_COMMIT=$GIT_COMMIT \
+ # Final image
+ ####################################################################################################
+ FROM argocd-base
++
++LABEL org.opencontainers.image.source https://github.com/flux-subsystem-argo/fsa
++
+ COPY --from=argocd-build /go/src/github.com/argoproj/argo-cd/dist/argocd* /usr/local/bin/
+ 
+ USER root
++
++RUN chmod +x /usr/local/bin/gpg-wrapper.sh && \
++    chmod +x /usr/local/bin/git-verify-wrapper.sh
++
+ RUN ln -s /usr/local/bin/argocd /usr/local/bin/argocd-server && \
+     ln -s /usr/local/bin/argocd /usr/local/bin/argocd-repo-server && \
+     ln -s /usr/local/bin/argocd /usr/local/bin/argocd-cmp-server && \
+diff --git a/go.mod b/go.mod
+index 7113f82d6..ca987953e 100644
+--- a/go.mod
++++ b/go.mod
+@@ -334,4 +334,5 @@ replace (
+ 	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.26.11
+ 	k8s.io/sample-controller => k8s.io/sample-controller v0.26.11
+ 
++	github.com/argoproj/gitops-engine v0.7.1-0.20240122213038-792124280fcc => ./gitops-engine
+ )

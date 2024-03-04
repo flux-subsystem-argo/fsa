@@ -1,0 +1,72 @@
+add open in weave gitops
+
+From: Chanwit Kaewkasi <chanwit@gmail.com>
+
+Signed-off-by: Chanwit Kaewkasi <chanwit@gmail.com>
+---
+ ui/src/app/applications/components/utils.tsx |   45 ++++++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
+
+diff --git a/ui/src/app/applications/components/utils.tsx b/ui/src/app/applications/components/utils.tsx
+index 4c0135927..1e4a60ef5 100644
+--- a/ui/src/app/applications/components/utils.tsx
++++ b/ui/src/app/applications/components/utils.tsx
+@@ -424,6 +424,28 @@ function getResourceActionsMenuItems(resource: ResourceTreeNode, metadata: model
+         .catch(() => [] as MenuItem[]);
+ }
+ 
++function getWeaveGitOpsKindPath(resourceKind: string): string {
++    switch(resourceKind) {
++    case "GitRepository":
++        return "git_repo"
++    case "Bucket":
++        return "bucket"
++    case "OCIRepository":
++        return "oci"
++    case "HelmChart":
++        return "helm_chart"
++    case "Kustomization":
++        return "kustomization"
++    case "HelmRelease":
++        return "helm_release"
++    case "Terraform":
++        return "terraform_object"
++    }
++
++    // not match return the same string
++    return "not_implemented"
++}
++
+ function getActionItems(
+     resource: ResourceTreeNode,
+     application: appModels.Application,
+@@ -467,6 +489,29 @@ function getActionItems(
+         });
+     }
+ 
++    // CK: Open in Weave GitOps
++    if (resource.kind === 'GitRepository' ||
++        resource.kind === 'Bucket' ||
++        resource.kind === 'OCIRepository' ||
++        resource.kind === 'Kustomization' ||
++        resource.kind === 'HelmRelease' ||
++        resource.kind === 'Terraform') {
++        // CK: parameterize 1. the base url, 2. the clusterName, 3. kind, 4. name and namespace
++        let baseUrl = "http://localhost:9001"
++        let clusterName = "Default"
++        if(application.metadata.annotations !== undefined) {
++            baseUrl = application.metadata.annotations["weave.gitops.flamingo/base-url"]
++            clusterName = application.metadata.annotations["weave.gitops.flamingo/cluster-name"]
++        }
++        let kind = getWeaveGitOpsKindPath(resource.kind)
++        let url = `${baseUrl}/${kind}/details?clusterName=${clusterName}&name=${resource.name}&namespace=${resource.namespace}`
++        items.unshift({
++            title: 'Open in Weave GitOps ...',
++            iconClassName: 'fa fa-info-circle',
++            action: () => window.open(url, '_blank')
++        });
++    }
++
+     if (isQuickStart) {
+         return from([items]);
+     }

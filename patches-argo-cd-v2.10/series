@@ -1,0 +1,24 @@
+# This series applies on Git commit fcf5d8c2381b68ab1621b90be63913b12cca2eb7
+01-build-with-local-gitops-engine.patch
+02-implement-loopback.patch
+03-allow-flux-and-oci-schemes.patch
+04-ui-fix-find-leaf-pod-bug.patch
+05-ui-show-kstatus-in-ui.patch
+06-show-custom-info.patch
+07-ui-add-resource-icons.patch
+08-ui-implement-health-checks-and.patch
+09-auto-create-flux-resources.patch
+10-add-flux-options-to-the-ui.patch
+11-support-helm-oci-and.patch
+12-add-open-in-weave-gitops.patch
+13-upgrade-to-flux-v2.0.0-rc.1.patch
+14-fix-branch-and-rev-info-of.patch
+15-change-logo-to-flamingo.patch
+16-override-workload-name-with.patch
+17-add-tilt-dev-support.patch
+18-add-oci-repository.patch
+19-fix-special-supported-schemes.patch
+20-add-health-message-for-helm.patch
+21-fix-health-message-in.patch
+22-fix-flux-2.2-oci.patch
+23-allow-overriding-flux-object.patch
