@@ -43,6 +43,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build v2.9
+        if: github.repository == 'flux-subsystem-argo/fsa'      
         run: |
           ln -s VERSION_29 VERSION
           ln -s patches-argo-cd-v2.9 patches-argo-cd
